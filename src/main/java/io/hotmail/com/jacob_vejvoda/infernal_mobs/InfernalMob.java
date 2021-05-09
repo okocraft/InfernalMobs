@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 class InfernalMob {
-    private boolean infernal;
+    private final boolean infernal;
     Entity entity;
     UUID id;
     int lives;

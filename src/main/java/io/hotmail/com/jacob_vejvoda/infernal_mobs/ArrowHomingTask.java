@@ -7,8 +7,11 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 class ArrowHomingTask extends BukkitRunnable {
-    private Arrow arrow;
-    private LivingEntity target;
+    private static final Vector TARGET_ADDITION = new Vector(0.0D, 0.5D, 0.0D);
+    private static final Vector VELOCITY_ADDITION = new Vector(0.0D, 0.03D, 0.0D);
+
+    private final Arrow arrow;
+    private final LivingEntity target;
 
     ArrowHomingTask(Arrow arrow, LivingEntity target, Plugin plugin) {
         this.arrow = arrow;
@@ -24,7 +27,7 @@ class ArrowHomingTask extends BukkitRunnable {
                 return;
             }
 
-            Vector toTarget = this.target.getLocation().clone().add(new Vector(0.0D, 0.5D, 0.0D)).subtract(this.arrow.getLocation()).toVector();
+            Vector toTarget = this.target.getLocation().clone().add(TARGET_ADDITION).subtract(this.arrow.getLocation()).toVector();
 
             Vector dirVelocity = this.arrow.getVelocity().clone().normalize();
             Vector dirToTarget = toTarget.clone().normalize();
@@ -41,7 +44,7 @@ class ArrowHomingTask extends BukkitRunnable {
                 newVelocity = newDir.clone().multiply(newSpeed);
             }
 
-            this.arrow.setVelocity(newVelocity.add(new Vector(0.0D, 0.03D, 0.0D)));
+            this.arrow.setVelocity(newVelocity.add(VELOCITY_ADDITION));
         } catch (Exception ignored) {
         }
     }
