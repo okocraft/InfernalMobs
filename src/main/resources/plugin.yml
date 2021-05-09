@@ -1,8 +1,8 @@
 name: InfernalMobs
-main: io.hotmail.com.jacob_vejvoda.infernal_mobs.infernal_mobs
+main: io.hotmail.com.jacob_vejvoda.infernal_mobs.InfernalMobsPlugin
 version: 6.3
 softdepend: [Vault, WizardlyMagic]
-api-version: 1.16
+api-version: 1.13
 author: Eliminator
 
 commands:
