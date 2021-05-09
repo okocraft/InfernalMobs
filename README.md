@@ -1,5 +1,8 @@
 # README #
 
+THIS IS FORK.
+Original source code is [here](https://bitbucket.org/Eliminator/infernalmobs/src/master/) by [Elim1nator](https://github.com/Elim1nator).
+
 This is the Infernal Mobs source code. 
 
 Released under the License: (CC BY-NC-SA 2.5 CA)
