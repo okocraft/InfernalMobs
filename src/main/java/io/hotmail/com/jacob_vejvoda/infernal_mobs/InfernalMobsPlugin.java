@@ -131,8 +131,9 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 Bukkit.getVersion().contains("1.15")) {
             configVersion = "1_15";
         }
-        if (Bukkit.getVersion().contains("1.16")) {
-            configVersion = "1_16";
+        if (Bukkit.getVersion().contains("1.16") ||
+                Bukkit.getVersion().contains("1.17")) {
+            configVersion = "1_17";
         }
 
         if (!new File(getDataFolder(), "config.yml").exists()) {
@@ -145,7 +146,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             if (configVersion != null) {
                 saveResource(configVersion + "_config.yml", false);
                 new File(getDataFolder(), configVersion + "_config.yml").renameTo(new File(getDataFolder(), "config.yml"));
-                getConfig().set("configVersion", Bukkit.getVersion());
+                getConfig().set("configVersion", Bukkit.getVersion().split(":")[1].replace(")", "").trim());
                 getConfig().options().header(
                         "Chance is the chance that a mob will not be infernal, the lower the number the higher the chance. (min 1)\n" +
                                 "Enabledworlds are the worlds that infernal mobs can spawn in.\n" +
