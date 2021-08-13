@@ -1,28 +1,9 @@
 package io.hotmail.com.jacob_vejvoda.infernal_mobs;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
-import org.bukkit.Effect;
 import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -82,6 +63,24 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class InfernalMobsPlugin extends JavaPlugin implements Listener {
@@ -248,7 +247,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     void giveMobsPowers() {
-        for (String id: mobSaveFile.getKeys(false)) {
+        for (String id : mobSaveFile.getKeys(false)) {
             UUID uuid;
 
             try {
@@ -831,15 +830,15 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             fc.set(path + ".item", s.getType().toString());
             fc.set(path + ".amount", s.getAmount());
             fc.set(path + ".durability", ((Damageable) s).getDamage());
-                fc.set(path + ".name", meta.getDisplayName());
-                List<String> lore = meta.getLore();
-                if (lore != null) {
-                    for (int l = 0; l < lore.size(); l++) {
-                        if (lore.get(l) != null) {
-                            fc.set(path + ".lore" + l, lore.get(l));
-                        }
+            fc.set(path + ".name", meta.getDisplayName());
+            List<String> lore = meta.getLore();
+            if (lore != null) {
+                for (int l = 0; l < lore.size(); l++) {
+                    if (lore.get(l) != null) {
+                        fc.set(path + ".lore" + l, lore.get(l));
                     }
                 }
+            }
             Enchantment e;
             for (Map.Entry<Enchantment, Integer> hm : s.getEnchantments().entrySet()) {
                 e = hm.getKey();
@@ -1251,57 +1250,115 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     public void applyEffect() {
+        var effectWorlds = getConfig().getStringList("effectworlds");
+        var enabledAll = effectWorlds.contains("<all>");
+        var enabledCharmSlots = getConfig().getIntegerList("enabledCharmSlots");
+
+        var potionEffects = lootFile.getConfigurationSection("potionEffects");
+
+        if (potionEffects == null) {
+            getServer().getScheduler().scheduleSyncDelayedTask(this, this::applyEffect, (10 * 20));
+        }
+
+        var idRequireItemMap = new HashMap<String, List<ItemStack>>();
+
+        for (var id : potionEffects.getKeys(false)) {
+            if (potionEffects.getString(id + ".attackEffect") != null ||
+                    potionEffects.getString(id + ".attackHelpEffect") != null) {
+                continue;
+            }
+
+            var requires =
+                    potionEffects.getIntegerList(id + ".requiredItems")
+                            .stream()
+                            .map(this::getItem)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toUnmodifiableList());
+
+            idRequireItemMap.put(id, requires);
+        }
+
         //Check Players
         for (Player p : getServer().getOnlinePlayers()) {
             World world = p.getWorld();
-            if (getConfig().getStringList("effectworlds").contains(world.getName()) || (getConfig().getStringList("effectworlds").contains("<all>"))) {
-                HashMap<Integer, ItemStack> itemMap = new HashMap<>();
-                for (int i : getConfig().getIntegerList("enabledCharmSlots")) {
-                    ItemStack in;
-                    in = p.getInventory().getItem(i);
-                    itemMap.put(i, in);
-                }
-                int ai = 100;
-                for (ItemStack ar : p.getInventory().getArmorContents())
-                    if (ar != null) {
-                        itemMap.put(ai, ar);
-                        ai = ai + 1;
-                    }
-                //for(int i = 0; i < 256; i++){
-                if (lootFile.getString("potionEffects") != null)
-                    for (String id : lootFile.getConfigurationSection("potionEffects").getKeys(false))
-                        if ((lootFile.getString("potionEffects." + id) != null) && (lootFile.getString("potionEffects." + id + ".attackEffect") == null) && (lootFile.getString("potionEffects." + id + ".attackHelpEffect") == null)) {
-                            List<ItemStack> itemsPlayerHas = new ArrayList<>();
-                            for (int neededItemIndex : lootFile.getIntegerList("potionEffects." + id + ".requiredItems")) {
-                                ItemStack neededItem = getItem(neededItemIndex);
-                                for (Map.Entry<Integer, ItemStack> hm : itemMap.entrySet()) {
-                                    ItemStack check = hm.getValue();
-                                    try {
-                                        if ((neededItem.getItemMeta() == null) || (check.getItemMeta().getDisplayName().equals(neededItem.getItemMeta().getDisplayName()))) {
-                                            if (check.getType().equals(neededItem.getType())) {
-                                                //if ((neededItem.getType().getMaxDurability() > 0) || ((Damageable)check).getDamage() == (((Damageable)neededItem).getDamage())) {
-                                                if (!isArmor(neededItem) || hm.getKey() >= 100)
-                                                    itemsPlayerHas.add(neededItem);
-                                                //}
-                                                //}
-                                            }
-                                        }
-                                    } catch (Exception e) {/*System.out.println("Error: " + e);**/}
-                                }
-                            }
 
-                            if (itemsPlayerHas.size() >= lootFile.getIntegerList("potionEffects." + id + ".requiredItems").size()) {
-                                applyEffects(p, Integer.parseInt(id));
+            if (!enabledAll && !effectWorlds.contains(world.getName())) {
+                continue;
+            }
+
+            Map<Integer, ItemStack> itemMap = new HashMap<>();
+
+            var itemsInCharmSlots =
+                    enabledCharmSlots.stream()
+                            .map(index -> p.getInventory().getItem(index))
+                            .filter(Objects::nonNull)
+                            .filter(item -> item.getItemMeta() != null)
+                            .collect(Collectors.toUnmodifiableSet());
+
+            var armors =
+                    Arrays.stream(p.getInventory().getArmorContents())
+                            .filter(Objects::nonNull)
+                            .filter(item -> item.getItemMeta() != null)
+                            .collect(Collectors.toUnmodifiableSet());
+
+            for (var id : idRequireItemMap.keySet()) {
+                var needItems = idRequireItemMap.get(id);
+                int count = 0;
+                int require = needItems.size();
+
+                for (int i = 0; i < require && count < require; i++) {
+                    var need = needItems.get(i);
+
+                    for (var armor : armors) {
+                        if (armor.getType() == need.getType() &&
+                                (need.getItemMeta() == null || isSameDisplayName(armor, need))) {
+                            count++;
+
+                            if (count == require) {
+                                break;
                             }
                         }
+                    }
+
+                    if (require <= count) {
+                        break;
+                    }
+
+                    for (var item : itemsInCharmSlots) {
+                        if (item.getType() == need.getType() && !isArmor(item) &&
+                                (need.getItemMeta() == null || isSameDisplayName(item, need))) {
+                            count++;
+
+                            if (count == require) {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (require <= count) {
+                    applyEffects(p, Integer.parseInt(id));
+                }
             }
         }
+
         getServer().getScheduler().scheduleSyncDelayedTask(this, this::applyEffect, (10 * 20));
     }
 
     private boolean isArmor(ItemStack s) {
-        String t = s.getType().toString().toLowerCase();
-        return t.contains("helm") || t.contains("plate") || t.contains("leg") || t.contains("boot");
+        String t = s.getType().toString();
+        return t.contains("HELMET") || t.contains("CHESTPLATE") || t.contains("LEGGINGS") || t.contains("BOOTS");
+    }
+
+    private boolean isSameDisplayName(ItemStack item, ItemStack other) {
+        var itemMeta = item.getItemMeta();
+        var otherMeta = other.getItemMeta();
+
+        if (itemMeta == null || otherMeta == null) {
+            return false;
+        }
+
+        return itemMeta.getDisplayName().equals(otherMeta.getDisplayName());
     }
 
     private void applyEffects(LivingEntity e, int effectID) {
@@ -2094,7 +2151,6 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     void displayParticle(Particle effect, World w, double x, double y, double z, double radius, int speed, int amount) {
-        amount = (amount <= 0) ? 1 : amount;
         Location l = new Location(w, x, y, z);
         try {
             if (radius <= 0) {
