@@ -198,7 +198,7 @@ public class EventListener implements Listener {
         for (Entity ent : e.getChunk().getEntities()) {
             int s = plugin.idSearch(ent.getUniqueId());
             if (s != -1) {
-                plugin.infernalList.remove(plugin.infernalList.get(s));
+                plugin.infernalList.remove(s);
             }
         }
     }
