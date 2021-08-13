@@ -997,82 +997,79 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         int data1 = Integer.parseInt(split[1]);
         int data2 = Integer.parseInt(split[2]);
         try {
-            String f = "FLAME";
+            var f = Particle.FLAME;
             switch (effect) {
                 case "potionBrake":
-                    f = Particle.SPELL.toString();
+                    f = Particle.SPELL;
                     break;
                 case "smoke":
-                    f = Particle.SMOKE_NORMAL.toString();
+                    f = Particle.SMOKE_NORMAL;
                     break;
                 case "blockBrake":
-                    f = Particle.BLOCK_CRACK.toString();
+                    f = Particle.BLOCK_CRACK;
                     break;
                 case "hugeExplode":
-                    f = Particle.EXPLOSION_HUGE.toString();
+                    f = Particle.EXPLOSION_HUGE;
                     break;
                 case "angryVillager":
-                    f = Particle.VILLAGER_ANGRY.toString();
+                    f = Particle.VILLAGER_ANGRY;
                     break;
                 case "cloud":
-                    f = Particle.CLOUD.toString();
+                    f = Particle.CLOUD;
                     break;
                 case "criticalHit":
-                    f = Particle.CRIT.toString();
+                    f = Particle.CRIT;
                     break;
                 case "mobSpell":
-                    f = Particle.SPELL_MOB.toString();
+                    f = Particle.SPELL_MOB;
                     break;
                 case "enchantmentTable":
-                    f = Particle.ENCHANTMENT_TABLE.toString();
+                    f = Particle.ENCHANTMENT_TABLE;
                     break;
                 case "ender":
-                    f = Particle.PORTAL.toString();
+                    f = Particle.PORTAL;
                     break;
                 case "explode":
-                    f = Particle.EXPLOSION_NORMAL.toString();
+                    f = Particle.EXPLOSION_NORMAL;
                     break;
                 case "greenSparkle":
-                    f = Particle.VILLAGER_HAPPY.toString();
+                    f = Particle.VILLAGER_HAPPY;
                     break;
                 case "heart":
-                    f = Particle.HEART.toString();
+                    f = Particle.HEART;
                     break;
                 case "largeExplode":
-                    f = Particle.EXPLOSION_LARGE.toString();
+                    f = Particle.EXPLOSION_LARGE;
                     break;
                 case "splash":
-                    f = Particle.WATER_SPLASH.toString();
+                    f = Particle.WATER_SPLASH;
                     break;
                 case "largeSmoke":
-                    f = Particle.SMOKE_LARGE.toString();
+                    f = Particle.SMOKE_LARGE;
                     break;
                 case "lavaSpark":
-                    f = Particle.LAVA.toString();
+                    f = Particle.LAVA;
                     break;
                 case "magicCriticalHit":
-                    f = Particle.CRIT_MAGIC.toString();
+                    f = Particle.CRIT_MAGIC;
                     break;
                 case "noteBlock":
-                    f = Particle.NOTE.toString();
+                    f = Particle.NOTE;
                     break;
                 case "tileDust":
-                    f = Particle.BLOCK_DUST.toString();
+                    f = Particle.BLOCK_DUST;
                     break;
                 case "colouredDust":
-                    f = Particle.REDSTONE.toString();
+                    f = Particle.REDSTONE;
                     break;
                 case "flame":
-                    f = Particle.FLAME.toString();
+                    f = Particle.FLAME;
                     break;
                 case "witchMagic":
-                    f = Particle.SPELL_WITCH.toString();
+                    f = Particle.SPELL_WITCH;
                     break;
             }
-            if (f != null) {
-                displayParticle(f, l, 1.0, data1, data2);
-            } else
-                l.getWorld().playEffect(l, Effect.MOBSPAWNER_FLAMES, data2);
+            displayParticle(f, l, 1.0, data1, data2);
         } catch (Exception x) {
             //x.printStackTrace();
         }
@@ -2092,22 +2089,22 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         }
     }
 
-    private void displayParticle(String effect, Location l, double radius, int speed, int amount) {
+    private void displayParticle(Particle effect, Location l, double radius, int speed, int amount) {
         displayParticle(effect, l.getWorld(), l.getX(), l.getY(), l.getZ(), radius, speed, amount);
     }
 
-    void displayParticle(String effect, World w, double x, double y, double z, double radius, int speed, int amount) {
+    void displayParticle(Particle effect, World w, double x, double y, double z, double radius, int speed, int amount) {
         amount = (amount <= 0) ? 1 : amount;
         Location l = new Location(w, x, y, z);
         try {
             if (radius <= 0) {
-                w.spawnParticle(Particle.valueOf(effect), l, 0, 0, 0, speed, amount);
+                w.spawnParticle(effect, l, 0, 0, 0, speed, amount);
             } else {
                 List<Location> ll = getArea(l, radius, 0.2);
                 if (ll.size() > 0) {
                     for (int i = 0; i < amount; i++) {
                         int index = new Random().nextInt(ll.size());
-                        w.spawnParticle(Particle.valueOf(effect), ll.get(index), 1, 0, 0, 0, 0);
+                        w.spawnParticle(effect, ll.get(index), 1, 0, 0, 0, 0);
                         ll.remove(index);
                     }
                 }

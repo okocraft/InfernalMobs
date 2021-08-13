@@ -106,7 +106,7 @@ public class EventListener implements Listener {
         int speed = -1;
         int amount = 1;
         double r = 0;
-        plugin.displayParticle(Particle.DRIP_LAVA.toString(), loc.getWorld(), loc.getX(), loc.getY(), loc.getZ(), r, speed, amount);
+        plugin.displayParticle(Particle.DRIP_LAVA, loc.getWorld(), loc.getX(), loc.getY(), loc.getZ(), r, speed, amount);
     }
 
     private float toDegree(double angle) {
