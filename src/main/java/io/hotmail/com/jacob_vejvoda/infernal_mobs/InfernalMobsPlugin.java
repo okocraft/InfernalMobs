@@ -219,9 +219,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 wList.add(p.getWorld());
             }
         }
-        for (World world : wList) {
-            giveMobsPowers(world);
-        }
+
+        giveMobsPowers();
     }
 
     private void scoreCheck() {
