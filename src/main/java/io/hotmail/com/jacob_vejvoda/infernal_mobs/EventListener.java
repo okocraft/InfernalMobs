@@ -176,14 +176,12 @@ public class EventListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        World world = event.getPlayer().getWorld();
-        plugin.giveMobsPowers(world);
+        plugin.giveMobsPowers();
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
-        World world = event.getPlayer().getWorld();
-        plugin.giveMobsPowers(world);
+        plugin.giveMobsPowers();
     }
 
     @EventHandler(priority = EventPriority.HIGH)

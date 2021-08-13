@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -247,11 +248,17 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         }
     }
 
-    void giveMobsPowers(World world) {
-        for (Entity ent : world.getEntities()) {
-            if (((ent instanceof LivingEntity)) && (mobSaveFile.getString(ent.getUniqueId().toString()) != null)) {
-                giveMobPowers(ent);
+    void giveMobsPowers() {
+        for (String id: mobSaveFile.getKeys(false)) {
+            UUID uuid;
+
+            try {
+                uuid = UUID.fromString(id);
+            } catch (IllegalArgumentException e) {
+                return;
             }
+
+            Optional.ofNullable(getServer().getEntity(uuid)).ifPresent(this::giveMobPowers);
         }
     }
 
