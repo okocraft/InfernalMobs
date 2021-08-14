@@ -83,7 +83,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"unchecked"})
 public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
     private static final Map<String, PotionEffect> EFFECT_MAP =
@@ -100,7 +100,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     final File saveYML = new File(getDataFolder(), "save.yml");
     private YamlConfiguration lootFile = YamlConfiguration.loadConfiguration(lootYML);
     final YamlConfiguration mobSaveFile = YamlConfiguration.loadConfiguration(saveYML);
-    private final HashMap<Entity, Entity> mountList = new HashMap();
+    private final HashMap<Entity, Entity> mountList = new HashMap<>();
     final List<Player> errorList = new ArrayList<>();
     final List<Player> levitateList = new ArrayList<>();
 
@@ -260,9 +260,11 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         }
 
         List<String> aList = null;
+
         for (MetadataValue v : ent.getMetadata("infernalMetadata")) {
-            aList = new ArrayList(Arrays.asList(v.asString().split(",")));
+            aList = Arrays.asList(v.asString().split(","));
         }
+
         if (aList == null) {
             var powers = mobSaveFile.getString(ent.getUniqueId().toString());
             if (powers != null) {
@@ -289,12 +291,9 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             return;
         }
 
-        if (!fixed && e instanceof Ageable) {
-            Ageable age = (Ageable) e;
-            var babyList = (List) getConfig().getList("disabledBabyMobs", Collections.emptyList());
-            if (!age.isAdult() && babyList.contains(e.getType().name())) {
-                return;
-            }
+        if (!fixed && e instanceof Ageable && !((Ageable) e).isAdult() &&
+                getConfig().getStringList("disabledBabyMobs").contains(e.getType().name())) {
+            return;
         }
 
         getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
@@ -860,9 +859,10 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             //Banner
             if (meta instanceof BannerMeta) {
                 BannerMeta b = (BannerMeta) meta;
-                List patList = b.getPatterns();
-                if (!patList.isEmpty())
+                var patList = b.getPatterns();
+                if (!patList.isEmpty()) {
                     fc.set(path + ".patterns", patList);
+                }
             }
             //Shield
             if (meta instanceof BlockStateMeta) {
@@ -870,7 +870,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 Banner b = (Banner) bmeta.getBlockState();
 
                 fc.set(path + ".colour", b.getBaseColor().toString());
-                List patList = b.getPatterns();
+                var patList = b.getPatterns();
                 if (!patList.isEmpty()) {
                     fc.set(path + ".patterns", patList);
                 }
@@ -1738,7 +1738,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     private static List<Block> getSphere(Block block1) {
-        List<Block> blocks = new LinkedList();
+        List<Block> blocks = new LinkedList<>();
         double xi = block1.getLocation().getX() + 0.5D;
         double yi = block1.getLocation().getY() + 0.5D;
         double zi = block1.getLocation().getZ() + 0.5D;
@@ -2562,7 +2562,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     }
                     World world = getServer().getWorld(args[2]);
                     Location spoint = new Location(world, Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
-                    List<String> abList = new ArrayList(Arrays.asList(args).subList(6, args.length));
+                    List<String> abList = Arrays.asList(args).subList(6, args.length);
                     if (cSpawn(sender, args[1], spoint, abList)) {
                         sender.sendMessage("Spawned a " + args[1] + " in " + args[2] + " at " + args[3] + ", " + args[4] + ", " + args[5] + " with the abilities:");
                         sender.sendMessage(abList.toString());
@@ -2574,7 +2574,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         sender.sendMessage(args[2] + " is not online!");
                         return true;
                     }
-                    List<String> abList = new ArrayList(Arrays.asList(args).subList(3, args.length));
+                    List<String> abList = Arrays.asList(args).subList(3, args.length);
                     if (cSpawn(sender, args[1], p.getLocation(), abList)) {
                         sender.sendMessage("Spawned a " + args[1] + " at " + p.getName() + " with the abilities:");
                         sender.sendMessage(abList.toString());
