@@ -2353,7 +2353,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         !args[0].equalsIgnoreCase("pspawn") &&
                         !args[0].equalsIgnoreCase("giveloot") &&
                         !args[0].equalsIgnoreCase("reload") &&
-                        !args[0].equalsIgnoreCase("killall")) {
+                        !args[0].equalsIgnoreCase("killall") &&
+                        !args[0].equalsIgnoreCase("purge")) {
                     sender.sendMessage("This command can only be run by a player!");
                     return true;
                 }
