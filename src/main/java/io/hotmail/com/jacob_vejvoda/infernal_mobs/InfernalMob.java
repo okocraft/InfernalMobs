@@ -7,11 +7,11 @@ import java.util.UUID;
 
 class InfernalMob {
     private final boolean infernal;
-    Entity entity;
-    UUID id;
+    final Entity entity;
+    final UUID id;
     int lives;
-    String effect;
-    List<String> abilityList;
+    final String effect;
+    final List<String> abilityList;
 
     InfernalMob(Entity type, UUID i, boolean in, List<String> l, int li, String e) {
         this.entity = type;

@@ -94,14 +94,14 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
     GUI gui;
     long serverTime = 0L;
-    List<InfernalMob> infernalList = new ArrayList<>();
+    final List<InfernalMob> infernalList = new ArrayList<>();
     private File lootYML = new File(getDataFolder(), "loot.yml");
-    File saveYML = new File(getDataFolder(), "save.yml");
+    final File saveYML = new File(getDataFolder(), "save.yml");
     private YamlConfiguration lootFile = YamlConfiguration.loadConfiguration(lootYML);
-    YamlConfiguration mobSaveFile = YamlConfiguration.loadConfiguration(saveYML);
+    final YamlConfiguration mobSaveFile = YamlConfiguration.loadConfiguration(saveYML);
     private final HashMap<Entity, Entity> mountList = new HashMap();
-    List<Player> errorList = new ArrayList<>();
-    List<Player> levitateList = new ArrayList<>();
+    final List<Player> errorList = new ArrayList<>();
+    final List<Player> levitateList = new ArrayList<>();
 
     public void onEnable() {
         //Register Events
