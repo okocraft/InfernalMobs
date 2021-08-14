@@ -371,7 +371,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
             gui.setName(e);
             giveMobGear(e, true);
-            addHealth(e, abilities);
+            addHealth(newMob, abilities);
 
             if (!getConfig().getBoolean("enableSpawnMessages")) {
                 return;
@@ -401,44 +401,42 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         }, 10L);
     }
 
-    private void addHealth(Entity ent, List<String> powerList) {
-        //double maxHealth = ((org.bukkit.entity.Damageable) ent).getHealth();
-        AttributeInstance attributeMaxHealth = ((LivingEntity) ent).getAttribute(Attribute.GENERIC_MAX_HEALTH);
+    private void addHealth(InfernalMob infernalMob, List<String> powerList) {
+        if (!(infernalMob.entity instanceof LivingEntity)) {
+            return;
+        }
+
+        var ent = (LivingEntity) infernalMob.entity;
+
+        AttributeInstance attributeMaxHealth = ent.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+
         if (attributeMaxHealth == null) {
             return;
         }
+
         double maxHealth = attributeMaxHealth.getBaseValue();
+
         float setHealth;
+
         if (getConfig().getBoolean("healthByPower")) {
-            int mobIndex = idSearch(ent.getUniqueId());
-            try {
-                InfernalMob m = infernalList.get(mobIndex);
-                setHealth = (float) (maxHealth * m.abilityList.size());
-            } catch (Exception e) {
-                setHealth = (float) (maxHealth * 5.0D);
-            }
+            setHealth = (float) (maxHealth * infernalMob.abilityList.size());
         } else {
             if (getConfig().getBoolean("healthByDistance")) {
-                Location l = ent.getWorld().getSpawnLocation();
-                int m = (int) l.distance(ent.getLocation()) / getConfig().getInt("addDistance");
-                if (m < 1) {
-                    m = 1;
-                }
-                int add = getConfig().getInt("healthToAdd");
-                setHealth = m * add;
+                double distance = ent.getWorld().getSpawnLocation().distance(ent.getLocation());
+                int addDistance = getConfig().getInt("addDistance");
+                int multipier = distance <= addDistance ? 1 : (int) distance / addDistance;
+
+                setHealth = (float) multipier * getConfig().getInt("healthToAdd");
             } else {
-                int healthMultiplier = getConfig().getInt("healthMultiplier");
-                setHealth = (float) (maxHealth * healthMultiplier);
+                setHealth = (float) maxHealth * getConfig().getInt("healthMultiplier");
             }
         }
-        if (setHealth >= 1.0F) {
-            try {
-                attributeMaxHealth.setBaseValue(setHealth);
-                ((LivingEntity) ent).setHealth(setHealth);
-            } catch (Exception e) {
-                System.out.println("addHealth: " + e);
-            }
+
+        if (1.0f <= setHealth) {
+            attributeMaxHealth.setBaseValue(setHealth);
+            ent.setHealth(setHealth);
         }
+
         String list = getPowerString(ent, powerList);
         ent.setMetadata("infernalMetadata", new FixedMetadataValue(this, list));
         mobSaveFile.set(ent.getUniqueId().toString(), list);
@@ -1553,7 +1551,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
                     giveMobGear(newEnt, true);
 
-                    addHealth(newEnt, aList);
+                    addHealth(newMob, aList);
                     if (h >= ((LivingEntity) newEnt).getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()) {
                         return;
                     }
@@ -2245,7 +2243,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             gui.setName(ent);
 
             giveMobGear(ent, false);
-            addHealth(ent, abList);
+            addHealth(newMob, abList);
             return true;
         } else {
             sender.sendMessage("Can't spawn a " + mob + "!");
@@ -2538,7 +2536,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                             gui.setName(ent);
 
                             giveMobGear(ent, false);
-                            addHealth(ent, abList);
+                            addHealth(newMob, abList);
                             if (!exmsg) {
                                 sender.sendMessage("Spawned a " + args[1]);
                             } else if (sender instanceof Player) {
@@ -2577,7 +2575,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                                 gui.setName(ent);
                                 giveMobGear(ent, false);
 
-                                addHealth(ent, spesificAbList);
+                                addHealth(newMob, spesificAbList);
 
                                 sender.sendMessage("Spawned a " + args[1] + " with the abilities:");
                                 sender.sendMessage(spesificAbList.toString());
