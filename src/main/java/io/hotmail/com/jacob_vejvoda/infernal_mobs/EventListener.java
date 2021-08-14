@@ -23,6 +23,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.SpawnerSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -240,42 +241,45 @@ public class EventListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onMobSpawn(CreatureSpawnEvent event) {
         World world = event.getEntity().getWorld();
-        if ((!event.getEntity().hasMetadata("NPC")) && (!event.getEntity().hasMetadata("shopkeeper")) && event.getEntity().getCustomName() == null) {
-            if (event.getEntity().getType() == EntityType.ENDER_DRAGON)
-                plugin.getLogger().log(Level.INFO, "Detected Entity Spawn: Ender Dragon");
-            if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
-                Block spawner = plugin.getNearSpawner(event.getEntity().getLocation());
-                if (spawner != null) {
-                    String name = plugin.getLocationName(spawner.getLocation());
-                    if (plugin.mobSaveFile.getString("infernalSpanwers." + name) != null) {
-                        if (this.spawnerMap.get(name) == null) {
-                            plugin.makeInfernal(event.getEntity(), true);
-                            this.spawnerMap.put(name, plugin.serverTime);
-                        } else {
-                            long startTime = this.spawnerMap.get(name);
-                            long endTime = plugin.serverTime;
-                            long timePassed = endTime - startTime;
-                            int delay = plugin.mobSaveFile.getInt("infernalSpanwers." + name);
-                            if (timePassed >= delay) {
-                                plugin.makeInfernal(event.getEntity(), true);
-                                this.spawnerMap.put(name, plugin.serverTime);
-                            } else {
-                                event.setCancelled(true);
-                            }
-                        }
-                    }
-                }
-            }
-            if ((event.getEntity().hasMetadata("NPC")) || (event.getEntity().hasMetadata("shopkeeper"))) {
-                return;
-            }
-            String entName = event.getEntity().getType().name();
-            if (((plugin.getConfig().getStringList("mobworlds").contains(world.getName())) || (plugin.getConfig().getStringList("mobworlds").contains("<all>"))) &&
-                    (plugin.getConfig().getStringList("enabledmobs").contains(entName)) &&
-                    (plugin.getConfig().getInt("naturalSpawnHeight") < event.getEntity().getLocation().getY()) &&
-                    (plugin.getConfig().getStringList("enabledSpawnReasons").contains(event.getSpawnReason().toString()))) {
-                plugin.makeInfernal(event.getEntity(), false);
-            }
+
+        if (event.getEntity().hasMetadata("NPC") || event.getEntity().hasMetadata("shopkeeper") || event.getEntity().getCustomName() != null) {
+            return;
+        }
+
+        if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
+            return;
+        }
+
+        String entName = event.getEntity().getType().name();
+        if ((plugin.getConfig().getStringList("mobworlds").contains(world.getName()) || plugin.getConfig().getStringList("mobworlds").contains("<all>")) &&
+                plugin.getConfig().getStringList("enabledmobs").contains(entName) &&
+                plugin.getConfig().getInt("naturalSpawnHeight") < event.getEntity().getLocation().getY() &&
+                plugin.getConfig().getStringList("enabledSpawnReasons").contains(event.getSpawnReason().toString())) {
+            plugin.makeInfernal(event.getEntity(), false);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onSpawnerSpawn(SpawnerSpawnEvent e) {
+        Block spawner = e.getSpawner().getBlock();
+
+        String name = plugin.getLocationName(spawner.getLocation());
+        var key = "infernalSpawners." + plugin.getLocationName(spawner.getLocation());
+        var delay = plugin.mobSaveFile.getInt(key, -1);
+
+        if (delay < 0) {
+            e.setCancelled(true);
+            return;
+        }
+
+        long start = this.spawnerMap.computeIfAbsent(name, str -> plugin.serverTime);
+        long passed = plugin.serverTime - start;
+
+        if (delay <= passed) {
+            plugin.makeInfernal(e.getEntity(), true);
+            this.spawnerMap.put(name, plugin.serverTime);
+        } else {
+            e.setCancelled(true);
         }
     }
 
