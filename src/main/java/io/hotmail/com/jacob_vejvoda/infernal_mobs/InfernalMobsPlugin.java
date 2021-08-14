@@ -79,6 +79,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -440,11 +441,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         }
         String list = getPowerString(ent, powerList);
         ent.setMetadata("infernalMetadata", new FixedMetadataValue(this, list));
-        try {
-            mobSaveFile.set(ent.getUniqueId().toString(), list);
-            mobSaveFile.save(saveYML);
-        } catch (IOException ignored) {
-        }
+        mobSaveFile.set(ent.getUniqueId().toString(), list);
+        saveAsync(mobSaveFile, saveYML);
     }
 
     private String getPowerString(Entity ent, List<String> powerList) {
@@ -463,7 +461,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         String id = infernalList.get(mobIndex).id.toString();
         infernalList.remove(mobIndex);
         mobSaveFile.set(id, null);
-        mobSaveFile.save(saveYML);
+        saveAsync(mobSaveFile, saveYML);
     }
 
     void spawnGhost(Location l) {
@@ -936,11 +934,9 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         } else {
             System.out.println("Item is null!");
         }
-        try {
-            lootFile.save(lootYML);
-        } catch (IOException ignored) {
-        }
-        saveConfig();
+
+        saveAsync(lootFile, lootYML);
+        ForkJoinPool.commonPool().execute(this::saveConfig);
     }
 
     private String prosessLootName(String name, ItemStack stack) {
@@ -2436,10 +2432,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                             } else
                                 System.out.println("ERROR: " + oid);
                         }
-                        try {
-                            lootFile.save(lootYML);
-                        } catch (IOException ignored) {
-                        }
+
+                        saveAsync(lootFile, lootYML);
                         sender.sendMessage("§eLoot Fixed!");
                     } else if ((args.length == 1) && (args[0].equalsIgnoreCase("reload"))) {
                         reloadConfig();
@@ -2644,7 +2638,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                                 String name = getLocationName(player.getTargetBlock(null, 25).getLocation());
 
                                 mobSaveFile.set("infernalSpanwers." + name, delay);
-                                mobSaveFile.save(saveYML);
+                                saveAsync(mobSaveFile, saveYML);
                                 sender.sendMessage("§cSpawner set to infernal with a " + delay + " second delay!");
                             } else {
                                 sender.sendMessage("§cYou must be looking a spawner to make it infernal!");
@@ -2720,5 +2714,15 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         sender.sendMessage("Usage: /im pspawn <mob> <player> <ability> <ability>");
         sender.sendMessage("Usage: /im kill <size>");
         sender.sendMessage("Usage: /im killall <world>");
+    }
+
+    void saveAsync(FileConfiguration config, File file) {
+        ForkJoinPool.commonPool().execute(() -> {
+            try {
+                config.save(file);
+            } catch (Exception e) {
+                getLogger().log(Level.SEVERE, "Could not save " + file.getName() + ".", e);
+            }
+        });
     }
 }
