@@ -301,102 +301,103 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     void makeInfernal(final Entity e, final boolean fixed) {
-        String entName = e.getType().name();
-        if ((!e.hasMetadata("NPC")) && (!e.hasMetadata("shopkeeper"))) {
-            if (!fixed) {
-                List<String> babyList = (ArrayList) getConfig().getList("disabledBabyMobs", new ArrayList<>());
-                if (e instanceof Ageable) {
-                    Ageable age = (Ageable) e;
-                    boolean baby = !age.isAdult();
-                    if (baby && babyList.contains(entName)) {
-                        return;
-                    }
+        if (e.hasMetadata("NPC") || e.hasMetadata("shopkeeper")) {
+            return;
+        }
+
+        if (!fixed && e instanceof Ageable) {
+            Ageable age = (Ageable) e;
+            var babyList = (List) getConfig().getList("disabledBabyMobs", Collections.emptyList());
+            if (!age.isAdult() && babyList.contains(e.getType().name())) {
+                return;
+            }
+        }
+
+        getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
+            var uuid = e.getUniqueId();
+            var entityType = e.getType().name();
+
+            if (e.isDead() || !e.isValid() ||
+                    (!getConfig().getStringList("enabledmobs").contains(entityType) && (!fixed || idSearch(uuid) != -1))) {
+                return;
+            }
+
+            int max;
+
+            if (fixed) {
+                max = 1;
+            } else {
+                int mc = getConfig().getInt("mobChances." + entityType);
+
+                if (mc > 0) {
+                    max = mc;
+                } else {
+                    max = getConfig().getInt("chance");
                 }
             }
-            final UUID id = e.getUniqueId();
-            final int chance = getConfig().getInt("chance");
-            getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
-                String entName1 = e.getType().name();
-                if ((!e.isDead()) && (e.isValid()) && (
-                        ((getConfig().getStringList("enabledmobs").contains(entName1))) || ((fixed) &&
-                                (idSearch(id) == -1)))) {
-                    //Default
-                    int min = 1;
-                    int max = chance;
-                    //Pe InfernalMob
-                    int mc = getConfig().getInt("mobChances." + entName1);
-                    if (mc > 0)
-                        max = mc;
-                    if (fixed)
-                        max = 1;
-                    //int randomNum = new Random().nextInt(max - min) + min;
-                    int randomNum = rand(min, max);
-                    if (randomNum == 1) {
-                        List<String> aList = getAbilitiesAmount(e);
-                        if (getConfig().getString("levelChance." + aList.size()) != null) {
-                            int sc = getConfig().getInt("levelChance." + aList.size());
-                            int randomNum2 = new Random().nextInt(sc - min) + min;
-                            if (randomNum2 != 1) {
-                                return;
-                            }
-                        }
-                        InfernalMob newMob;
-                        if (aList.contains("1up")) {
-                            newMob = new InfernalMob(e, id, true, aList, 2, getEffect());
-                        } else {
-                            newMob = new InfernalMob(e, id, true, aList, 1, getEffect());
-                        }
 
-                        //fire event
-                        InfernalSpawnEvent infernalEvent = new InfernalSpawnEvent(e, newMob);
-                        Bukkit.getPluginManager().callEvent(infernalEvent);
-                        if (infernalEvent.isCancelled()) {
-                            return;
-                        }
+            if (RANDOM.nextInt(max) + 1 != 1) {
+                return;
+            }
 
-                        if (aList.contains("flying")) {
-                            makeFly(e);
-                        }
-                        infernalList.add(newMob);
-                        gui.setName(e);
-                        giveMobGear(e, true);
-                        addHealth(e, aList);
-                        if (getConfig().getBoolean("enableSpawnMessages")) {
-                            if (getConfig().getList("spawnMessages") != null) {
-                                List<String> spawnMessageList = getConfig().getStringList("spawnMessages");
-                                Random randomGenerator = new Random();
-                                int index = randomGenerator.nextInt(spawnMessageList.size());
-                                String spawnMessage = spawnMessageList.get(index);
+            var abilities = getAbilitiesAmount(e);
 
-                                spawnMessage = ChatColor.translateAlternateColorCodes('&', spawnMessage);
-                                if (e.getCustomName() != null) {
-                                    spawnMessage = spawnMessage.replace("mob", e.getCustomName());
-                                } else {
-                                    spawnMessage = spawnMessage.replace("mob", e.getType().toString().toLowerCase());
-                                }
-                                int r = getConfig().getInt("spawnMessageRadius");
-                                if (r == -1) {
-                                    for (Player p : e.getWorld().getPlayers()) {
-                                        p.sendMessage(spawnMessage);
-                                    }
-                                } else if (r == -2) {
-                                    Bukkit.broadcastMessage(spawnMessage);
-                                } else {
-                                    for (Entity e1 : e.getNearbyEntities(r, r, r)) {
-                                        if ((e1 instanceof Player)) {
-                                            Player p = (Player) e1;
-                                            p.sendMessage(spawnMessage);
-                                        }
-                                    }
-                                }
-                            } else {
-                                System.out.println("No valid spawn messages found!");
-                            }
-                        }
-                    }
+            var levelChance = getConfig().getInt("levelChance." + abilities.size(), 0) - 1;
+
+            if (0 < levelChance) {
+                if (RANDOM.nextInt(levelChance) + 1 != 1) {
+                    return;
                 }
-            }, 10L);
-        }
+            }
+
+            InfernalMob newMob =
+                    abilities.contains("1up") ?
+                            new InfernalMob(e, uuid, true, abilities, 2, getEffect()) :
+                            new InfernalMob(e, uuid, true, abilities, 1, getEffect());
+
+            //fire event
+            InfernalSpawnEvent infernalEvent = new InfernalSpawnEvent(e, newMob);
+            Bukkit.getPluginManager().callEvent(infernalEvent);
+            if (infernalEvent.isCancelled()) {
+                return;
+            }
+
+            infernalList.add(newMob);
+
+            if (abilities.contains("flying")) {
+                makeFly(e);
+            }
+
+            gui.setName(e);
+            giveMobGear(e, true);
+            addHealth(e, abilities);
+
+            if (!getConfig().getBoolean("enableSpawnMessages")) {
+                return;
+            }
+
+            var spawnMessages = getConfig().getStringList("spawnMessages");
+            int index = RANDOM.nextInt(spawnMessages.size());
+
+            var message =
+                    ChatColor.translateAlternateColorCodes('&', spawnMessages.get(index))
+                            .replace("mob", e.getName());
+
+            var radius = getConfig().getInt("spawnMessageRadius");
+
+            switch (radius) {
+                case -1:
+                    e.getWorld().getPlayers().forEach(p -> p.sendMessage(message));
+                    break;
+                case -2:
+                    getServer().broadcastMessage(message);
+                    break;
+                default:
+                    if (0 < radius) {
+                        e.getNearbyEntities(radius, radius, radius).forEach(entity -> entity.sendMessage(message));
+                    }
+            }
+        }, 10L);
     }
 
     private void addHealth(Entity ent, List<String> powerList) {
