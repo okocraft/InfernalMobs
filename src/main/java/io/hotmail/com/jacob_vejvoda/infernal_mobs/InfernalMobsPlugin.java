@@ -2257,7 +2257,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     private int rand(int min, int max) {
-        return min + (int) (Math.random() * (1 + max - min));
+        return min + (int) (RANDOM.nextDouble() * (1 + max - min));
     }
 
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
