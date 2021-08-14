@@ -950,32 +950,33 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     private String getEffect() {
-        String effect = "mobSpawnerFire";
-        try {
-            //Get Enabled Particles
-            List<String> partTypes = getConfig().getStringList("mobParticles");
-            //Get Random Particle
-            effect = partTypes.get(RANDOM.nextInt(partTypes.size()));
-        } catch (Exception e) {
-            System.out.println("Error: " + e);
+        var particleTypes = getConfig().getStringList("mobParticles");
+
+        if (particleTypes.isEmpty()) {
+            return "mobSpawnerFire";
+        } else {
+            return particleTypes.get(RANDOM.nextInt(particleTypes.size()));
         }
-        return effect;
     }
 
     private void displayEffect(Location l, String effect) {
         if (effect == null) {
+            effect = getEffect();
+        }
+
+        String[] split = effect.split(":");
+
+        effect = split[0];
+        int data1 = 0, data2 = 2;
+
+        if (split.length == 3) {
             try {
-                //Get Particles
-                effect = getEffect();
-            } catch (Exception e) {
-                effect = "mobSpawnerFire";
+                data1 = Integer.parseInt(split[1]);
+                data2 = Integer.parseInt(split[2]);
+            } catch (Exception ignored) {
             }
         }
-        //Get Effect and Data
-        String[] split = effect.split(":");
-        effect = split[0];
-        int data1 = Integer.parseInt(split[1]);
-        int data2 = Integer.parseInt(split[2]);
+
         try {
             var f = Particle.FLAME;
             switch (effect) {
@@ -1047,8 +1048,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     break;
             }
             displayParticle(f, l, data1, data2);
-        } catch (Exception x) {
-            //x.printStackTrace();
+        } catch (Exception ignored) {
         }
     }
 
