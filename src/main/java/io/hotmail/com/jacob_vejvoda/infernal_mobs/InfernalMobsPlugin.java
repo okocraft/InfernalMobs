@@ -2203,7 +2203,9 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         List<String> allAbilitiesList = new ArrayList<>(Arrays.asList("confusing", "ghost", "morph", "mounted", "flying", "gravity", "firework", "necromancer", "archer", "molten", "mama", "potions", "explode", "berserk", "weakness", "vengeance", "webber", "storm", "sprint", "lifesteal", "ghastly", "ender", "cloaked", "1up", "sapper", "rust", "bullwark", "quicksand", "thief", "tosser", "withering", "blinding", "armoured", "poisonous"));
-        Set<String> commands = new HashSet<>(Arrays.asList("reload", "worldInfo", "error", "getloot", "setloot", "giveloot", "abilities", "showAbilities", "setInfernal", "spawn", "cspawn", "pspawn", "kill", "killall"));
+        Set<String> commands = new HashSet<>(Arrays.asList("reload", "worldInfo", "error", "getloot", "setloot",
+                "giveloot", "abilities", "showAbilities", "setInfernal", "spawn", "cspawn", "pspawn", "kill",
+                "killall", "purge"));
         if (sender.hasPermission("infernal_mobs.commands")) {
 
             List<String> newTab = new ArrayList<>();
@@ -2400,10 +2402,32 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
                 saveAsync(lootFile, lootYML);
                 sender.sendMessage("§eLoot Fixed!");
-            } else if ((args.length == 1) && (args[0].equalsIgnoreCase("reload"))) {
+            } else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
                 reloadConfig();
                 reloadLoot();
                 sender.sendMessage("§eConfig reloaded!");
+            } else if (args[0].equalsIgnoreCase("purge")) {
+                var notLoadedMobs =
+                        mobSaveFile.getKeys(false)
+                                .stream()
+                                .map(str -> {
+                                    try {
+                                        return UUID.fromString(str);
+                                    } catch (IllegalArgumentException e) {
+                                        return null;
+                                    }
+                                })
+                                .filter(Objects::nonNull)
+                                .filter(id -> !infernalMobMap.containsKey(id))
+                                .map(UUID::toString)
+                                .collect(Collectors.toUnmodifiableSet());
+
+                int deleted = 0;
+                for (var id : notLoadedMobs) {
+                    mobSaveFile.set(id, null);
+                    deleted++;
+                }
+                sender.sendMessage("§e" + deleted + " mobs which are not loaded has been deleted!");
             } else if (args[0].equals("mobList")) {
                 sender.sendMessage("§6Mob List:");
                 Arrays.stream(EntityType.values())
@@ -2688,6 +2712,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         sender.sendMessage("Usage: /im pspawn <mob> <player> <ability> <ability>");
         sender.sendMessage("Usage: /im kill <size>");
         sender.sendMessage("Usage: /im killall <world>");
+        sender.sendMessage("Usage: /im purge");
     }
 
     void saveAsync(FileConfiguration config, File file) {
