@@ -26,7 +26,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -263,7 +262,7 @@ public class EventListener implements Listener {
             if (event.getEntity().getType() == EntityType.ENDER_DRAGON)
                 plugin.getLogger().log(Level.INFO, "Detected Entity Spawn: Ender Dragon");
             if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
-                Block spawner = plugin.blockNear(event.getEntity().getLocation(), Material.SPAWNER, 10);
+                Block spawner = plugin.getNearSpawner(event.getEntity().getLocation());
                 if (spawner != null) {
                     String name = plugin.getLocationName(spawner.getLocation());
                     if (plugin.mobSaveFile.getString("infernalSpanwers." + name) != null) {
@@ -349,19 +348,13 @@ public class EventListener implements Listener {
                 if (aList.contains("ghost")) {
                     plugin.spawnGhost(event.getEntity().getLocation());
                 }
-                Location dropSpot;
-                if (aList.contains("molten")) {
-                    dropSpot = event.getEntity().getLocation();
-                    dropSpot.setX(dropSpot.getX() - 2.0D);
-                } else {
-                    dropSpot = event.getEntity().getLocation();
-                }
+
                 if ((plugin.getConfig().getBoolean("enableDeathMessages")) && ((event.getEntity().getKiller() != null)) && (!isGhost)) {
                     Player player = event.getEntity().getKiller();
                     if (plugin.getConfig().getList("deathMessages") != null) {
                         List<String> deathMessagesList = plugin.getConfig().getStringList("deathMessages");
-                        Random randomGenerator = new Random();
-                        int index = randomGenerator.nextInt(deathMessagesList.size());
+
+                        int index = InfernalMobsPlugin.RANDOM.nextInt(deathMessagesList.size());
                         String deathMessage = deathMessagesList.get(index);
                         String title = plugin.gui.getMobNameTag(event.getEntity());
                         deathMessage = ChatColor.translateAlternateColorCodes('&', deathMessage);
@@ -395,13 +388,6 @@ public class EventListener implements Listener {
                     @SuppressWarnings("deprecation")
                     ItemStack drop = plugin.getRandomLoot(player, event.getEntity().getType().getName(), aList.size());
                     if (drop != null) {
-                        int min = 1;
-                        int max = plugin.getConfig().getInt("dropChance");
-                        int randomNum = new Random().nextInt(max - min + 1) + min;
-                        if (randomNum == 1) {
-                            Item droppedItem = event.getEntity().getWorld().dropItemNaturally(dropSpot, drop);
-                            plugin.keepAlive(droppedItem);
-                        }
                         int xpm = plugin.getConfig().getInt("xpMultiplier");
                         int xp = event.getDroppedExp() * xpm;
                         event.setDroppedExp(xp);
