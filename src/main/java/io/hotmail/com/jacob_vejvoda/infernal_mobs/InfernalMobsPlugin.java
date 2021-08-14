@@ -310,7 +310,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     max = getConfig().getInt("chance");
                 }
 
-                if (RANDOM.nextInt(max) + 1 != 1) {
+                if (RANDOM.nextInt(max) != 0) {
                     return;
                 }
             }
@@ -320,7 +320,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             var levelChance = getConfig().getInt("levelChance." + abilities.size(), 0) - 1;
 
             if (0 < levelChance) {
-                if (RANDOM.nextInt(levelChance) + 1 != 1) {
+                if (RANDOM.nextInt(levelChance) != 0) {
                     return;
                 }
             }
@@ -463,7 +463,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         g.getEquipment().setHelmetDropChance(0.0F);
         g.getEquipment().setChestplateDropChance(0.0F);
 
-        if (RANDOM.nextInt(4) + 1 == 1) {
+        if (RANDOM.nextInt(4) == 0) {
             g.getEquipment().setItemInMainHand(new ItemStack(Material.STONE_HOE, 1));
             g.getEquipment().setItemInMainHandDropChance(0.0F);
         }
@@ -743,15 +743,14 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     List<LevelledEnchantment> enchList = new ArrayList<>();
                     int safety = 0;
                     int j = 0;
-                    int chance;
+
                     do {
                         if (lootFile.getString("loot." + loot + ".enchantments." + j) != null) {
                             int enChance = 1;
                             if (lootFile.getString("loot." + loot + ".enchantments." + j + ".chance") != null) {
                                 enChance = lootFile.getInt("loot." + loot + ".enchantments." + j + ".chance");
                             }
-                            chance = RANDOM.nextInt(enChance) + 1;
-                            if (chance == 1) {
+                            if (RANDOM.nextInt(enChance) == 0) {
                                 String enchantment = lootFile.getString("loot." + loot + ".enchantments." + j + ".enchantment").toLowerCase();
                                 String levelString = lootFile.getString("loot." + loot + ".enchantments." + j + ".level");
                                 int level = getIntFromString(levelString);
@@ -1081,7 +1080,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             var mob = (LivingEntity) entity;
 
             for (var ability : infernalMob.abilityList) {
-                int randomNum = RANDOM.nextInt(9) + 1;
+                int randomNum = RANDOM.nextInt(9);
 
                 switch (ability) {
                     case "armoured":
@@ -1103,7 +1102,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         }
                         break;
                     case "tosser":
-                        if (randomNum < 6) {
+                        if (randomNum < 5) {
                             double radius = 6D;
                             for (Player player : entity.getWorld().getPlayers()) {
                                 if (player.getLocation().distance(entity.getLocation()) <= radius) {
@@ -1115,7 +1114,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         }
                         break;
                     case "gravity":
-                        if (randomNum < 9) {
+                        if (randomNum < 8) {
                             break;
                         }
 
@@ -1132,7 +1131,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         break;
                     case "ghastly":
                     case "necromancer":
-                        if (randomNum != 6) {
+                        if (randomNum != 5) {
                             break;
                         }
 
@@ -1459,7 +1458,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             } else if ((ability.equals("morph")) && (isLegitVictim(atc, isPlayerVictim, ability))) {
                 try {
                     Entity newEnt;
-                    int mc = RANDOM.nextInt(25) + 1;
+                    int mc = RANDOM.nextInt(25);
                     if (mc != 20) {
                         return;
                     }
@@ -1554,12 +1553,12 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 if ((ability.equals("ender")) && (isLegitVictim(atc, isPlayerVictim, ability))) {
                     Location targetLocation = vic.getLocation();
                     if (randomNum >= 8) {
-                        int randomNum2 = RANDOM.nextInt(4) + 1;
-                        if (randomNum2 == 1) {
+                        int randomNum2 = RANDOM.nextInt(4);
+                        if (randomNum2 == 0) {
                             targetLocation.setZ(targetLocation.getZ() + 6.0D);
-                        } else if (randomNum2 == 2) {
+                        } else if (randomNum2 == 1) {
                             targetLocation.setZ(targetLocation.getZ() - 5.0D);
-                        } else if (randomNum2 == 3) {
+                        } else if (randomNum2 == 2) {
                             targetLocation.setX(targetLocation.getX() + 8.0D);
                         } else {
                             targetLocation.setX(targetLocation.getX() - 10.0D);
@@ -1587,8 +1586,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                                 feet.getBlock().setType(Material.COBWEB);
                                 setAir(feet, 60);
 
-                                int rNum = RANDOM.nextInt(9) + 1;
-                                if ((rNum == 5) && (
+                                if (RANDOM.nextInt(9) == 5 && (
                                         (atc.getType() == EntityType.SPIDER) || (atc.getType() == EntityType.CAVE_SPIDER))) {
                                     Location l = atc.getLocation();
                                     Block b = l.getBlock();
@@ -1880,7 +1878,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
         for (int i = 0; i < amount; i++) {
             int max = allAbilitiesList.size();
-            int randomNum = RANDOM.nextInt(max - 1) + 1;
+            int randomNum = RANDOM.nextInt(max);
             String ab = allAbilitiesList.get(randomNum);
             if (getConfig().getString(ab) != null) {
                 if ((getConfig().getString(ab, "always").equals("always")) || (getConfig().getBoolean(ab))) {
