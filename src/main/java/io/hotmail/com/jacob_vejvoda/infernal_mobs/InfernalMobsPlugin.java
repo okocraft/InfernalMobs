@@ -964,15 +964,16 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             effect = getEffect();
         }
 
+        // effect:speed:amount
+        // but speed is not used
         String[] split = effect.split(":");
 
         effect = split[0];
-        int data1 = 0, data2 = 2;
+        int amount = 2;
 
         if (split.length == 3) {
             try {
-                data1 = Integer.parseInt(split[1]);
-                data2 = Integer.parseInt(split[2]);
+                amount = Integer.parseInt(split[2]);
             } catch (Exception ignored) {
             }
         }
@@ -1047,7 +1048,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     f = Particle.SPELL_WITCH;
                     break;
             }
-            displayParticle(f, l, data1, data2);
+            displayParticle(f, l, amount);
         } catch (Exception ignored) {
         }
     }
@@ -2099,37 +2100,32 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
     }
 
-    private void displayParticle(Particle effect, Location l, int speed, int amount) {
-        displayParticle(effect, l.getWorld(), l.getX(), l.getY(), l.getZ(), 1.0, speed, amount);
+    void displayLavaParticle(World w, double x, double y, double z) {
+        w.spawnParticle(Particle.DRIP_LAVA, x, y, z, 0, 0, 0, -1, 1);
     }
 
-    void displayParticle(Particle effect, World w, double x, double y, double z, double radius, int speed,
-                         int amount) {
-        Location l = new Location(w, x, y, z);
-        try {
-            if (radius <= 0) {
-                w.spawnParticle(effect, l, 0, 0, 0, speed, amount);
-            } else {
-                List<Location> ll = getArea(l, radius);
-                if (ll.size() > 0) {
-                    for (int i = 0; i < amount; i++) {
-                        int index = RANDOM.nextInt(ll.size());
-                        w.spawnParticle(effect, ll.get(index), 1, 0, 0, 0, 0);
-                        ll.remove(index);
-                    }
-                }
+    private void displayParticle(Particle effect, Location l, int amount) {
+        var world = l.getWorld();
+
+        if (world == null) {
+            return;
+        }
+
+        List<Location> ll = getParticleArea(l);
+        if (ll.size() > 0) {
+            for (int i = 0; i < amount; i++) {
+                int index = RANDOM.nextInt(ll.size());
+                world.spawnParticle(effect, ll.get(index), 1, 0, 0, 0, 0);
+                ll.remove(index);
             }
-        } catch (Exception ex) {
-            // System.out.println("V: " + getServer().getVersion());
-            // ex.printStackTrace();
         }
     }
 
-    private List<Location> getArea(Location l, double r) {
+    private List<Location> getParticleArea(Location l) {
         List<Location> ll = new ArrayList<>();
-        for (double x = l.getX() - r; x < l.getX() + r; x += 0.2) {
-            for (double y = l.getY() - r; y < l.getY() + r; y += 0.2) {
-                for (double z = l.getZ() - r; z < l.getZ() + r; z += 0.2) {
+        for (double x = l.getX() - 1; x < l.getX() + 1; x += 0.2) {
+            for (double y = l.getY() - 1; y < l.getY() + 1; y += 0.2) {
+                for (double z = l.getZ() - 1; z < l.getZ() + 1; z += 0.2) {
                     ll.add(new Location(l.getWorld(), x, y, z));
                 }
             }

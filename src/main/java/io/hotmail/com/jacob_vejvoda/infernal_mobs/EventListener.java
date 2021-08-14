@@ -5,7 +5,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -40,6 +39,7 @@ import org.bukkit.util.Vector;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -112,10 +112,8 @@ public class EventListener implements Listener {
     }
 
     private void beamParticles(Location loc) {
-        int speed = -1;
-        int amount = 1;
-        double r = 0;
-        plugin.displayParticle(Particle.DRIP_LAVA, loc.getWorld(), loc.getX(), loc.getY(), loc.getZ(), r, speed, amount);
+        Optional.ofNullable(loc.getWorld())
+                .ifPresent(world -> plugin.displayLavaParticle(world, loc.getX(), loc.getY(), loc.getZ()));
     }
 
     private float toDegree(double angle) {
