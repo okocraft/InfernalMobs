@@ -70,6 +70,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +95,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
     GUI gui;
     long serverTime = 0L;
-    final List<InfernalMob> infernalList = new ArrayList<>();
+    final Map<UUID, InfernalMob> infernalMobMap = new LinkedHashMap<>();
     private File lootYML = new File(getDataFolder(), "loot.yml");
     final File saveYML = new File(getDataFolder(), "save.yml");
     private YamlConfiguration lootFile = YamlConfiguration.loadConfiguration(lootYML);
@@ -222,12 +223,11 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     private void scoreCheck() {
-        for (Player p : getServer().getOnlinePlayers())
+        for (Player p : getServer().getOnlinePlayers()) {
             GUI.fixBar(p);
+        }
 
-        var tmp = new HashMap<>(mountList);
-
-        for (var entry : tmp.entrySet()) {
+        for (var entry : Map.copyOf(mountList).entrySet()) {
             var rider = entry.getKey();
             var mountedMob = entry.getValue();
 
@@ -265,31 +265,34 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
     void giveMobPowers(Entity ent) {
         UUID id = ent.getUniqueId();
-        if (idSearch(id) == -1) {
-            List<String> aList = null;
-            for (MetadataValue v : ent.getMetadata("infernalMetadata")) {
-                aList = new ArrayList(Arrays.asList(v.asString().split(",")));
-            }
-            if (aList == null) {
-                var powers = mobSaveFile.getString(ent.getUniqueId().toString());
-                if (powers != null) {
-                    aList = Arrays.asList(powers.split(","));
-                    ent.setMetadata("infernalMetadata", new FixedMetadataValue(this, powers));
-                } else {
-                    aList = getAbilitiesAmount(ent);
-                }
-            }
-            InfernalMob newMob;
-            if (aList.contains("1up")) {
-                newMob = new InfernalMob(ent, id, true, aList, 2, getEffect());
-            } else {
-                newMob = new InfernalMob(ent, id, true, aList, 1, getEffect());
-            }
-            if (aList.contains("flying")) {
-                makeFly(ent);
-            }
-            infernalList.add(newMob);
+
+        if (infernalMobMap.containsKey(ent.getUniqueId())) {
+            return;
         }
+
+        List<String> aList = null;
+        for (MetadataValue v : ent.getMetadata("infernalMetadata")) {
+            aList = new ArrayList(Arrays.asList(v.asString().split(",")));
+        }
+        if (aList == null) {
+            var powers = mobSaveFile.getString(ent.getUniqueId().toString());
+            if (powers != null) {
+                aList = Arrays.asList(powers.split(","));
+                ent.setMetadata("infernalMetadata", new FixedMetadataValue(this, powers));
+            } else {
+                aList = getAbilitiesAmount(ent);
+            }
+        }
+        InfernalMob newMob;
+        if (aList.contains("1up")) {
+            newMob = new InfernalMob(ent, id, true, aList, 2, getEffect());
+        } else {
+            newMob = new InfernalMob(ent, id, true, aList, 1, getEffect());
+        }
+        if (aList.contains("flying")) {
+            makeFly(ent);
+        }
+        addNewInfernalMobToMap(newMob);
     }
 
     void makeInfernal(final Entity e, final boolean fixed) {
@@ -310,7 +313,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             var entityType = e.getType().name();
 
             if (e.isDead() || !e.isValid() ||
-                    (!getConfig().getStringList("enabledmobs").contains(entityType) && (!fixed || idSearch(uuid) != -1))) {
+                    (!getConfig().getStringList("enabledmobs").contains(entityType) && (!fixed || infernalMobMap.containsKey(uuid)))) {
                 return;
             }
 
@@ -354,7 +357,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 return;
             }
 
-            infernalList.add(newMob);
+            addNewInfernalMobToMap(newMob);
 
             if (abilities.contains("flying")) {
                 makeFly(e);
@@ -435,14 +438,21 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     private String getPowerString(List<String> powerList) {
-        return String.join(", ", powerList);
+        return String.join(",", powerList);
     }
 
-    void removeMob(int mobIndex) {
-        String id = infernalList.get(mobIndex).id.toString();
-        infernalList.remove(mobIndex);
-        mobSaveFile.set(id, null);
-        saveAsync(mobSaveFile, saveYML);
+    void removeMob(InfernalMob mob) {
+        removeMob(mob, true);
+    }
+
+    void removeMob(InfernalMob mob, boolean save) {
+        if (infernalMobMap.remove(mob.id) != null) {
+            mobSaveFile.set(mob.id.toString(), null);
+
+            if (save) {
+                saveAsync(mobSaveFile, saveYML);
+            }
+        }
     }
 
     void spawnGhost(Location l) {
@@ -496,7 +506,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         } else {
             newMob = new InfernalMob(g, g.getUniqueId(), false, aList, 1, "cloud:0:8");
         }
-        infernalList.add(newMob);
+
+        addNewInfernalMobToMap(newMob);
     }
 
     private void ghostMove(final Entity g) {
@@ -1045,7 +1056,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         //GUI Bars And Stuff
         scoreCheck();
 
-        for (var infernalMob : infernalList) {
+        for (var infernalMob : infernalMobMap.values()) {
             var entity = infernalMob.entity;
 
             if (!entity.isValid() || entity.isDead() || !entity.getLocation().getChunk().isLoaded()) {
@@ -1393,7 +1404,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         //Do InfernalMob Effects
         try {
             UUID id = mob.getUniqueId();
-            if (idSearch(id) != -1) {
+            if (infernalMobMap.containsKey(id)) {
                 List<String> abilityList = findMobAbilities(id);
                 if ((!player.isDead()) && (!mob.isDead())) {
                     for (String ability : abilityList)
@@ -1459,8 +1470,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         return;
                     }
                     Location l = atc.getLocation().clone();
-                    List<String> aList = infernalList.get(idSearch(id)).abilityList;
-                    //Remove old
+
                     double dis = 46.0D;
                     for (Entity e : atc.getNearbyEntities(dis, dis, dis))
                         if (e instanceof Player)
@@ -1482,20 +1492,25 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         return;
                     }
                     InfernalMob newMob;
-                    if (aList.contains("1up")) {
-                        newMob = new InfernalMob(newEnt, newEnt.getUniqueId(), true, aList, 2, getEffect());
+
+                    List<String> abilities = infernalMobMap.get(id).abilityList;
+
+                    if (abilities.contains("1up")) {
+                        newMob = new InfernalMob(newEnt, newEnt.getUniqueId(), true, abilities, 2, getEffect());
                     } else {
-                        newMob = new InfernalMob(newEnt, newEnt.getUniqueId(), true, aList, 1, getEffect());
+                        newMob = new InfernalMob(newEnt, newEnt.getUniqueId(), true, abilities, 1, getEffect());
                     }
-                    if (aList.contains("flying")) {
+
+                    if (abilities.contains("flying")) {
                         makeFly(newEnt);
                     }
-                    infernalList.set(idSearch(id), newMob);
+
+                    addNewInfernalMobToMap(newMob);
                     gui.setName(newEnt);
 
                     giveMobGear(newMob, true);
 
-                    addHealth(newMob, aList);
+                    addHealth(newMob, abilities);
                 } catch (Exception ex) {
                     getLogger().log(Level.SEVERE, "Morph Error", ex);
                 }
@@ -1887,26 +1902,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         return abilityList;
     }
 
-    public int idSearch(UUID id) {
-        InfernalMob idMob = null;
-        for (InfernalMob mob : infernalList) {
-            if (mob.id.equals(id)) {
-                idMob = mob;
-            }
-        }
-        if (idMob != null) {
-            return infernalList.indexOf(idMob);
-        }
-        return -1;
-    }
-
     public List<String> findMobAbilities(UUID id) {
-        for (InfernalMob mob : infernalList) {
-            if (mob.id.equals(id)) {
-                return mob.abilityList;
-            }
-        }
-        return null;
+        return Optional.ofNullable(infernalMobMap.get(id)).map(i -> i.abilityList).orElse(Collections.emptyList());
     }
 
     private Entity getTarget(final Player player) {
@@ -2188,7 +2185,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             if (abList.contains("flying")) {
                 makeFly(ent);
             }
-            infernalList.add(newMob);
+            addNewInfernalMobToMap(newMob);
             gui.setName(ent);
 
             giveMobGear(newMob, false);
@@ -2419,7 +2416,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("§eClick on a mob to send an error report about it.");
             } else if ((args.length == 1) && (args[0].equalsIgnoreCase("info"))) {
                 sender.sendMessage("§eMounts: " + mountList.size());
-                sender.sendMessage("§eInfernals: " + infernalList.size());
+                sender.sendMessage("§eInfernals: " + infernalMobMap.size());
             } else if ((args.length == 1) && (args[0].equalsIgnoreCase("worldInfo"))) {
                 List<String> enWorldList = getConfig().getStringList("mobworlds");
                 World world = player.getWorld();
@@ -2512,7 +2509,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         makeFly(ent);
                     }
 
-                    infernalList.add(newMob);
+                    addNewInfernalMobToMap(newMob);
                     gui.setName(ent);
 
                     giveMobGear(newMob, false);
@@ -2552,7 +2549,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         if (spesificAbList.contains("flying")) {
                             makeFly(ent);
                         }
-                        infernalList.add(newMob);
+                        addNewInfernalMobToMap(newMob);
                         gui.setName(ent);
                         giveMobGear(newMob, false);
 
@@ -2598,7 +2595,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     var target = getTarget(player);
                     if (target != null) {
                         UUID mobId = target.getUniqueId();
-                        if (idSearch(mobId) != -1) {
+                        if (infernalMobMap.containsKey(mobId)) {
                             oldMobAbilityList = findMobAbilities(mobId);
                             if (!target.isDead()) {
                                 sender.sendMessage("--Targeted InfernalMob's Abilities--");
@@ -2624,36 +2621,38 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     }
                 } else if ((args[0].equalsIgnoreCase("kill")) && (args.length == 2)) {
                     int size = Integer.parseInt(args[1]);
-                    for (Entity e : player.getNearbyEntities(size, size, size)) {
-                        int id = idSearch(e.getUniqueId());
-                        if (id != -1) {
-                            removeMob(id);
-                            e.remove();
-                            getLogger().log(Level.INFO, "Entity remove due to /kill");
-                        }
-                    }
+                    player.getNearbyEntities(size, size, size)
+                            .stream()
+                            .map(Entity::getUniqueId)
+                            .map(infernalMobMap::get)
+                            .filter(Objects::nonNull)
+                            .forEach(infernalMob -> {
+                                infernalMob.entity.remove();
+                                removeMob(infernalMob);
+                            });
                     sender.sendMessage("§eKilled all infernal mobs near you!");
                 } else if ((args[0].equalsIgnoreCase("killall")) && (args.length == 1 || args.length == 2) && player != null) {
                     World w;
+
                     if (args.length == 1) {
                         w = ((Player) sender).getWorld();
                     } else {
                         w = getServer().getWorld(args[1]);
                     }
 
-                    if (w != null) {
-                        for (Entity e : w.getEntities()) {
-                            int id = idSearch(e.getUniqueId());
-                            if (id != -1) {
-                                removeMob(id);
-                                getLogger().log(Level.INFO, "Entity remove due to /killall");
-                                e.remove();
-                            }
-                        }
-                        sender.sendMessage("§eKilled all loaded infernal mobs in that world!");
-                    } else {
+                    if (w == null) {
                         sender.sendMessage("§cWorld not found!");
+                        return true;
                     }
+
+                    for (var infernalMob : List.copyOf(infernalMobMap.values())) {
+                        if (infernalMob.entity.getWorld().equals(w)) {
+                            removeMob(infernalMob, false);
+                        }
+                    }
+
+                    saveAsync(mobSaveFile, saveYML);
+                    sender.sendMessage("§eKilled all loaded infernal mobs in that world!");
                 } else if (args[0].equalsIgnoreCase("mobs")) {
                     sender.sendMessage("§6List of Mobs:");
                     for (EntityType e : EntityType.values())
@@ -2692,9 +2691,16 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     void saveAsync(FileConfiguration config, File file) {
+        var copied = new YamlConfiguration();
+
+        for (var key : config.getKeys(false)) {
+            var value = config.get(key, null);
+            copied.set(key, value);
+        }
+
         ForkJoinPool.commonPool().execute(() -> {
             try {
-                config.save(file);
+                copied.save(file);
             } catch (Exception e) {
                 getLogger().log(Level.SEVERE, "Could not save " + file.getName() + ".", e);
             }
@@ -2703,10 +2709,14 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
     private EntityType getEntityTypeFromName(String name) {
         for (var type : EntityType.values()) {
-            if (type.getKey().getKey().equalsIgnoreCase(name)) {
+            if (type != EntityType.UNKNOWN && type.getKey().getKey().equalsIgnoreCase(name)) {
                 return type;
             }
         }
         return null;
+    }
+
+    private void addNewInfernalMobToMap(InfernalMob newMob) {
+        infernalMobMap.put(newMob.id, newMob);
     }
 }

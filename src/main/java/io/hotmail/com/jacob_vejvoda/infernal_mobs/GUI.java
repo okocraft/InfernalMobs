@@ -38,7 +38,7 @@ public class GUI implements Listener {
 
     public static Entity getNearbyBoss(Player p) {
         double distance = 26.0D;
-        for (InfernalMob m : plugin.infernalList) {
+        for (InfernalMob m : plugin.infernalMobMap.values()) {
             if (m.entity.getWorld().equals(p.getWorld())) {
                 Entity boss = m.entity;
                 if (p.getLocation().distance(boss.getLocation()) < distance) {
@@ -56,10 +56,8 @@ public class GUI implements Listener {
                 if (plugin.getConfig().getBoolean("enableBossBar")) {
                     Optional.ofNullable(bossBars.remove(b)).ifPresent(BossBar::removeAll);
                 }
-                int mobIndex = plugin.idSearch(b.getUniqueId());
-                    if (mobIndex != -1) {
-                        plugin.removeMob(mobIndex);
-                    }
+
+                Optional.ofNullable(plugin.infernalMobMap.get(b.getUniqueId())).ifPresent(plugin::removeMob);
                 clearInfo(p);
             } else {
                 if (plugin.getConfig().getBoolean("enableBossBar")) {
