@@ -2417,6 +2417,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     mobSaveFile.set(id, null);
                     deleted++;
                 }
+                saveAsync(mobSaveFile, saveYML);
                 sender.sendMessage("§e" + deleted + " mobs which are not loaded has been deleted!");
             } else if (args[0].equals("mobList")) {
                 sender.sendMessage("§6Mob List:");
