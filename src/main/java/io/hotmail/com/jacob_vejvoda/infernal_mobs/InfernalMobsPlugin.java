@@ -370,7 +370,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             }
 
             gui.setName(e);
-            giveMobGear(e, true);
+            giveMobGear(newMob, true);
             addHealth(newMob, abilities);
 
             if (!getConfig().getBoolean("enableSpawnMessages")) {
@@ -1549,7 +1549,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     infernalList.set(idSearch(id), newMob);
                     gui.setName(newEnt);
 
-                    giveMobGear(newEnt, true);
+                    giveMobGear(newMob, true);
 
                     addHealth(newMob, aList);
                     if (h >= ((LivingEntity) newEnt).getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()) {
@@ -1996,142 +1996,157 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         ((LivingEntity) bat).addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 999999, 1), true);
     }
 
-    private void giveMobGear(Entity mob, boolean naturalSpawn) {
+    private void giveMobGear(InfernalMob infernalMob, boolean naturalSpawn) {
+        if (!(infernalMob.entity instanceof LivingEntity)) {
+            return;
+        }
+
+        var mob = (LivingEntity) infernalMob.entity;
+
         UUID mobId = mob.getUniqueId();
-        List<String> mobAbilityList = null;
-        boolean armoured = false;
-        if (idSearch(mobId) != -1) {
-            mobAbilityList = findMobAbilities(mobId);
+        var mobAbilityList = infernalMob.abilityList;
+
+        var equipments = mob.getEquipment();
+
+        if (equipments != null) {
             if (mobAbilityList.contains("armoured")) {
-                armoured = true;
-                ((LivingEntity) mob).setCanPickupItems(false);
-            }
-        }
-        ItemStack helm = new ItemStack(Material.DIAMOND_HELMET, 1);
-        ItemStack chest = new ItemStack(Material.DIAMOND_CHESTPLATE, 1);
-        ItemStack pants = new ItemStack(Material.DIAMOND_LEGGINGS, 1);
-        ItemStack boots = new ItemStack(Material.DIAMOND_BOOTS, 1);
-        ItemStack sword = new ItemStack(Material.DIAMOND_SWORD, 1);
-        sword.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 4);
-        EntityEquipment ee = ((LivingEntity) mob).getEquipment();
-        if (mob.getType() == EntityType.WITHER_SKELETON) {
-            if (armoured) {
-                ee.setHelmetDropChance(0.0F);
-                ee.setChestplateDropChance(0.0F);
-                ee.setLeggingsDropChance(0.0F);
-                ee.setBootsDropChance(0.0F);
-                ee.setItemInMainHandDropChance(0.0F);
-                ee.setHelmet(helm);
-                ee.setChestplate(chest);
-                ee.setLeggings(pants);
-                ee.setBoots(boots);
-                ee.setItemInMainHand(sword);
-            }
-        } else if (mob.getType() == EntityType.SKELETON) {
-            ItemStack bow = new ItemStack(Material.BOW, 1);
-            ee.setItemInMainHand(bow);
-            if (armoured) {
-                ee.setHelmetDropChance(0.0F);
-                ee.setChestplateDropChance(0.0F);
-                ee.setHelmet(helm);
-                ee.setChestplate(chest);
-                if (!mobAbilityList.contains("cloaked")) {
-                    ee.setLeggingsDropChance(0.0F);
-                    ee.setBootsDropChance(0.0F);
-                    ee.setLeggings(pants);
-                    ee.setBoots(boots);
-                }
-                ee.setItemInMainHandDropChance(0.0F);
-                ee.setItemInMainHand(sword);
-            } else if (mobAbilityList.contains("cloaked")) {
-                ItemStack skull = new ItemStack(Material.GLASS_BOTTLE, 1);
-                ee.setHelmet(skull);
-            }
-        } else if (mob instanceof Zombie) {
-            if (armoured) {
-                ee.setHelmetDropChance(0.0F);
-                ee.setChestplateDropChance(0.0F);
-                ee.setHelmet(helm);
-                ee.setChestplate(chest);
-                if (!mobAbilityList.contains("cloaked")) {
-                    ee.setLeggings(pants);
-                    ee.setBoots(boots);
-                }
-                ee.setLeggingsDropChance(0.0F);
-                ee.setBootsDropChance(0.0F);
-                ee.setItemInMainHandDropChance(0.0F);
-                ee.setItemInMainHand(sword);
-            } else if (mobAbilityList.contains("cloaked")) {
-                ItemStack skull = new ItemStack(Material.GLASS_BOTTLE);
-                //skull.setDurability((short) 2);
-                ee.setHelmet(skull);
-            }
-        }
-        if (((mobAbilityList.contains("mounted")) && (getConfig().getStringList("enabledRiders").contains(mob.getType().name()))) || ((!naturalSpawn) && (mobAbilityList.contains("mounted")))) {
-            List<String> mounts;
+                var helmet = new ItemStack(Material.DIAMOND_HELMET, 1);
+                var chestplate = new ItemStack(Material.DIAMOND_CHESTPLATE, 1);
+                var leggings = new ItemStack(Material.DIAMOND_LEGGINGS, 1);
+                var boots = new ItemStack(Material.DIAMOND_BOOTS, 1);
+                var sword = new ItemStack(Material.DIAMOND_SWORD, 1);
+                sword.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 4);
 
-            mounts = getConfig().getStringList("enabledMounts");
-
-            Random randomGenerator = new Random();
-            int index = randomGenerator.nextInt(mounts.size());
-            String mount = mounts.get(index);
-            //Type
-            String type = null;
-            if (mount.contains(":")) {
-                String[] s = mount.split(":");
-                mount = s[0];
-                type = s[1];
-            }
-            if (EntityType.fromName(mount) != null && (EntityType.fromName(mount) != EntityType.ENDER_DRAGON)) {
-                Entity liveMount = mob.getWorld().spawnEntity(mob.getLocation(), EntityType.fromName(mount));
-
-                mountList.put(liveMount, mob);
-                liveMount.addPassenger(mob);
-                if (liveMount.getType() == EntityType.HORSE) {
-                    Horse hm = (Horse) liveMount;
-                    if (getConfig().getBoolean("horseMountsHaveSaddles")) {
-                        ItemStack saddle = new ItemStack(Material.SADDLE);
-                        hm.getInventory().setSaddle(saddle);
-                    }
-                    hm.setTamed(true);
-                    int randomNum3 = rand(1, 7);
-                    if (randomNum3 == 1) {
-                        hm.setColor(Horse.Color.BLACK);
-                    } else if (randomNum3 == 2) {
-                        hm.setColor(Horse.Color.BROWN);
-                    } else if (randomNum3 == 3) {
-                        hm.setColor(Horse.Color.CHESTNUT);
-                    } else if (randomNum3 == 4) {
-                        hm.setColor(Horse.Color.CREAMY);
-                    } else if (randomNum3 == 5) {
-                        hm.setColor(Horse.Color.DARK_BROWN);
-                    } else if (randomNum3 == 6) {
-                        hm.setColor(Horse.Color.GRAY);
-                    } else {
-                        hm.setColor(Horse.Color.WHITE);
-                    }
-                    if ((armoured) && (getConfig().getBoolean("armouredMountsHaveArmour"))) {
-                        ItemStack armour = new ItemStack(Material.DIAMOND_HORSE_ARMOR, 1);
-                        hm.getInventory().setArmor(armour);
-                    }
-                } else if (liveMount.getType() == EntityType.SHEEP) {
-                    Sheep sh = (Sheep) liveMount;
-                    if (type != null) {
-                        sh.setColor(DyeColor.valueOf(type));
-                    }
+                if (mob.getType() == EntityType.WITHER_SKELETON) {
+                    equipments.setHelmetDropChance(0.0F);
+                    equipments.setChestplateDropChance(0.0F);
+                    equipments.setLeggingsDropChance(0.0F);
+                    equipments.setBootsDropChance(0.0F);
+                    equipments.setItemInMainHandDropChance(0.0F);
+                    equipments.setHelmet(helmet);
+                    equipments.setChestplate(chestplate);
+                    equipments.setLeggings(leggings);
+                    equipments.setBoots(boots);
+                    equipments.setItemInMainHand(sword);
                 }
+
+                if (mob.getType() == EntityType.SKELETON || mob instanceof Zombie) {
+                    equipments.setHelmetDropChance(0.0F);
+                    equipments.setChestplateDropChance(0.0F);
+                    equipments.setHelmet(helmet);
+                    equipments.setChestplate(chestplate);
+
+                    if (!mobAbilityList.contains("cloaked")) {
+                        equipments.setLeggingsDropChance(0.0F);
+                        equipments.setBootsDropChance(0.0F);
+                        equipments.setLeggings(leggings);
+                        equipments.setBoots(boots);
+                    }
+
+                    equipments.setItemInMainHandDropChance(0.0F);
+                    equipments.setItemInMainHand(sword);
+                }
+
+                mob.setCanPickupItems(false);
             } else {
-                System.out.println("Can't spawn mount!");
-                System.out.println(mount + " is not a valid Entity!");
+                if (mob.getType() == EntityType.SKELETON) {
+                    ItemStack bow = new ItemStack(Material.BOW, 1);
+                    equipments.setItemInMainHand(bow);
+
+                    if (mobAbilityList.contains("cloaked")) {
+                        ItemStack skull = new ItemStack(Material.GLASS_BOTTLE, 1);
+                        equipments.setHelmet(skull);
+                    }
+                }
+
+                if (mob instanceof Zombie && mobAbilityList.contains("cloaked")) {
+                    ItemStack skull = new ItemStack(Material.GLASS_BOTTLE);
+                    equipments.setHelmet(skull);
+                }
             }
         }
+
+        if (mobAbilityList.contains("mounted") && (!naturalSpawn || getConfig().getStringList("enabledRiders").contains(mob.getType().name()))) {
+            var mounts = getConfig().getStringList("enabledMounts");
+            var mount = mounts.get(RANDOM.nextInt(mounts.size()));
+            var type = EntityType.fromName(mount);
+
+            if (type == null || type == EntityType.ENDER_DRAGON) {
+                getLogger().warning("Can't spawn mount because " + mount + " is not a valid entity!");
+                return;
+            }
+
+            Entity liveMount = mob.getWorld().spawnEntity(mob.getLocation(), type);
+
+            mountList.put(liveMount, mob);
+            liveMount.addPassenger(mob);
+
+            if (liveMount instanceof Horse) {
+                Horse horse = (Horse) liveMount;
+
+                if (getConfig().getBoolean("horseMountsHaveSaddles")) {
+                    horse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
+                }
+
+                horse.setTamed(true);
+
+                int randomNum3 = rand(1, 7);
+
+                Horse.Color color;
+
+                switch (RANDOM.nextInt(7)) {
+                    case 1:
+                        color = Horse.Color.BLACK;
+                        break;
+                    case 2:
+                        color = Horse.Color.BROWN;
+                        break;
+                    case 3:
+                        color = Horse.Color.CHESTNUT;
+                        break;
+                    case 4:
+                        color = Horse.Color.CREAMY;
+                        break;
+                    case 5:
+                        color = Horse.Color.DARK_BROWN;
+                        break;
+                    case 6:
+                        color = Horse.Color.GRAY;
+                        break;
+                    default:
+                        color = Horse.Color.WHITE;
+                        break;
+                }
+
+                horse.setColor(color);
+
+                if (mobAbilityList.contains("armoured") && getConfig().getBoolean("armouredMountsHaveArmour")) {
+                    horse.getInventory().setArmor(new ItemStack(Material.DIAMOND_HORSE_ARMOR, 1));
+                }
+            }
+
+            if (liveMount instanceof Sheep) {
+                Sheep sheep = (Sheep) liveMount;
+                var colonIndex = mount.indexOf(':');
+
+                if (colonIndex != -1 && colonIndex + 1 == mount.length()) {
+                    try {
+                        sheep.setColor(DyeColor.valueOf(mount.substring(colonIndex + 1, mount.length())));
+                    } catch (Exception e) {
+                        getLogger().warning(mount + " is an invalid sheep!");
+                    }
+                }
+            }
+        }
+
     }
 
     private void displayParticle(Particle effect, Location l, double radius, int speed, int amount) {
         displayParticle(effect, l.getWorld(), l.getX(), l.getY(), l.getZ(), radius, speed, amount);
     }
 
-    void displayParticle(Particle effect, World w, double x, double y, double z, double radius, int speed, int amount) {
+    void displayParticle(Particle effect, World w, double x, double y, double z, double radius, int speed,
+                         int amount) {
         Location l = new Location(w, x, y, z);
         try {
             if (radius <= 0) {
@@ -2242,7 +2257,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             infernalList.add(newMob);
             gui.setName(ent);
 
-            giveMobGear(ent, false);
+            giveMobGear(newMob, false);
             addHealth(newMob, abList);
             return true;
         } else {
@@ -2535,7 +2550,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                             infernalList.add(newMob);
                             gui.setName(ent);
 
-                            giveMobGear(ent, false);
+                            giveMobGear(newMob, false);
                             addHealth(newMob, abList);
                             if (!exmsg) {
                                 sender.sendMessage("Spawned a " + args[1]);
@@ -2573,7 +2588,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                                 }
                                 infernalList.add(newMob);
                                 gui.setName(ent);
-                                giveMobGear(ent, false);
+                                giveMobGear(newMob, false);
 
                                 addHealth(newMob, spesificAbList);
 
