@@ -2138,27 +2138,6 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         return (l.getX() + "." + l.getY() + "." + l.getZ() + l.getWorld().getName()).replace(".", "");
     }
 
-    Block getNearSpawner(Location l) {
-        double xTmp = l.getX();
-        double yTmp = l.getY();
-        double zTmp = l.getZ();
-        int finalX = (int) Math.round(xTmp);
-        int finalY = (int) Math.round(yTmp);
-        int finalZ = (int) Math.round(zTmp);
-        for (int x = finalX - 10; x <= finalX + 10; x++) {
-            for (int y = finalY - 10; y <= finalY + 10; y++) {
-                for (int z = finalZ - 10; z <= finalZ + 10; z++) {
-                    Location loc = new Location(l.getWorld(), x, y, z);
-                    Block block = loc.getBlock();
-                    if (block.getType() == Material.SPAWNER) {
-                        return block;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
     private boolean cSpawn(CommandSender sender, String mob, Location l, List<String> abList) {
         //cspawn <mob> <world> <x> <y> <z> <ability> <ability>
         var type = getEntityTypeFromName(mob);
