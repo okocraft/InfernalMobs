@@ -206,20 +206,9 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         }
 
         applyEffect();
-        reloadPowers();
+        giveMobsPowers();
         showEffect();
         addRecipes();
-    }
-
-    private void reloadPowers() {
-        List<World> wList = new ArrayList<>();
-        for (Player p : getServer().getOnlinePlayers()) {
-            if (!wList.contains(p.getWorld())) {
-                wList.add(p.getWorld());
-            }
-        }
-
-        giveMobsPowers();
     }
 
     private void scoreCheck() {
