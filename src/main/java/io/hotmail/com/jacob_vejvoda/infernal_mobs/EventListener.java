@@ -304,8 +304,8 @@ public class EventListener implements Listener {
     public void onBlockBreak(BlockBreakEvent e) {
         if (e.getBlock().getType() == Material.SPAWNER) {
             String name = plugin.getLocationName(e.getBlock().getLocation());
-            if (plugin.mobSaveFile.getString("infernalSpanwers." + name) != null) {
-                plugin.mobSaveFile.set("infernalSpanwers." + name, null);
+            if (plugin.mobSaveFile.getString("infernalSpawners." + name) != null) {
+                plugin.mobSaveFile.set("infernalSpawners." + name, null);
                 plugin.saveAsync(plugin.mobSaveFile, plugin.saveYML);
                 if (e.getPlayer().isOp()) {
                     e.getPlayer().sendMessage("§cYou broke an infernal mob spawner!");

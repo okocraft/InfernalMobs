@@ -286,10 +286,6 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     void makeInfernal(final Entity e, final boolean fixed) {
-        if (e.hasMetadata("NPC") || e.hasMetadata("shopkeeper")) {
-            return;
-        }
-
         if (!fixed && e instanceof Ageable && !((Ageable) e).isAdult() &&
                 getConfig().getStringList("disabledBabyMobs").contains(e.getType().name())) {
             return;
@@ -339,7 +335,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
             //fire event
             InfernalSpawnEvent infernalEvent = new InfernalSpawnEvent(e, newMob);
-            Bukkit.getPluginManager().callEvent(infernalEvent);
+            getServer().getPluginManager().callEvent(infernalEvent);
             if (infernalEvent.isCancelled()) {
                 return;
             }
@@ -2619,7 +2615,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
                         String name = getLocationName(player.getTargetBlock(null, 25).getLocation());
 
-                        mobSaveFile.set("infernalSpanwers." + name, delay);
+                        mobSaveFile.set("infernalSpawners." + name, delay);
                         saveAsync(mobSaveFile, saveYML);
                         sender.sendMessage("§cSpawner set to infernal with a " + delay + " second delay!");
                     } else {
