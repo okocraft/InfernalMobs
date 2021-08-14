@@ -10,12 +10,11 @@ import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Snowball;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -219,29 +218,16 @@ public class EventListener implements Listener {
             Entity attacker = event.getDamager();
             Entity victim = event.getEntity();
             Entity mob;
-            if ((attacker instanceof Arrow)) {
-                Arrow arrow = (Arrow) event.getDamager();
-                if (((arrow.getShooter() instanceof Player)) && (!(victim instanceof Player))) {
+            if ((attacker instanceof Projectile)) {
+                Projectile projectile = (Projectile) event.getDamager();
+                if (((projectile.getShooter() instanceof Player)) && (!(victim instanceof Player))) {
                     mob = victim;
-                    Player player = (Player) arrow.getShooter();
+                    Player player = (Player) projectile.getShooter();
                     plugin.doEffect(player, mob, false);
-                } else if ((!(arrow.getShooter() instanceof Player)) && ((victim instanceof Player))) {
-                    mob = (Entity) arrow.getShooter();
+                } else if ((!(projectile.getShooter() instanceof Player)) && ((victim instanceof Player))) {
+                    mob = (Entity) projectile.getShooter();
                     Player player = (Player) victim;
                     plugin.doEffect(player, mob, true);
-                }
-            } else if ((attacker instanceof Snowball)) {
-                Snowball snowBall = (Snowball) event.getDamager();
-                if (snowBall.getShooter() != null) {
-                    if (((snowBall.getShooter() instanceof Player)) && (!(victim instanceof Player))) {
-                        mob = victim;
-                        Player player = (Player) snowBall.getShooter();
-                        plugin.doEffect(player, mob, false);
-                    } else if ((!(snowBall.getShooter() instanceof Player)) && ((victim instanceof Player))) {
-                        mob = (Entity) snowBall.getShooter();
-                        Player player = (Player) victim;
-                        plugin.doEffect(player, mob, true);
-                    }
                 }
             } else if (((attacker instanceof Player)) && (!(victim instanceof Player))) {
                 Player player = (Player) attacker;
