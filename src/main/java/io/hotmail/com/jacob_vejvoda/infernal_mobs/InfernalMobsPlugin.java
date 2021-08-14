@@ -438,7 +438,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         return String.join(", ", powerList);
     }
 
-    void removeMob(int mobIndex) throws IOException {
+    void removeMob(int mobIndex) {
         String id = infernalList.get(mobIndex).id.toString();
         infernalList.remove(mobIndex);
         mobSaveFile.set(id, null);

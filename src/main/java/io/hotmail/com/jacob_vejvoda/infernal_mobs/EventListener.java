@@ -389,11 +389,8 @@ public class EventListener implements Listener {
                         event.setDroppedExp(xp);
                     }
                 }
-                try {
-                    plugin.removeMob(mobIndex);
-                } catch (Exception e) {
-                    System.out.println("Error: " + e);
-                }
+
+                plugin.removeMob(mobIndex);
             }
         } catch (Exception e) {
             System.out.println("EntityDeathEvent: " + e);

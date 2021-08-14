@@ -61,11 +61,9 @@ public class GUI implements Listener {
                     Optional.ofNullable(bossBars.remove(b)).ifPresent(BossBar::removeAll);
                 }
                 int mobIndex = plugin.idSearch(b.getUniqueId());
-                try {
-                    if (mobIndex != -1)
+                    if (mobIndex != -1) {
                         plugin.removeMob(mobIndex);
-                } catch (IOException ignored) {
-                }
+                    }
                 clearInfo(p);
             } else {
                 if (plugin.getConfig().getBoolean("enableBossBar")) {
