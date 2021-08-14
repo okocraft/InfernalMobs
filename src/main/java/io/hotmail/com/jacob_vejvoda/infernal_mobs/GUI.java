@@ -2,11 +2,16 @@ package io.hotmail.com.jacob_vejvoda.infernal_mobs;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Damageable;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -49,8 +54,8 @@ public class GUI implements Listener {
         //System.out.println("fixBar");
         Entity b = getNearbyBoss(p);
         if (b != null) {
-            //System.out.println("Dead: " + b.isDead());
-            //System.out.println("HP: " + ((Damageable)b).getHealth());
+            System.out.println("Dead: " + b.isDead());
+            System.out.println("HP: " + ((Damageable) b).getHealth());
             if (b.isDead() || ((Damageable) b).getHealth() <= 0) {
                 if (plugin.getConfig().getBoolean("enableBossBar")) {
                     Optional.ofNullable(bossBars.remove(b)).ifPresent(BossBar::removeAll);
@@ -74,20 +79,24 @@ public class GUI implements Listener {
             clearInfo(p);
     }
 
-    @SuppressWarnings("deprecation")
-    private static void showBossBar(Player p, Entity e) {
-        List<String> oldMobAbilityList = plugin.findMobAbilities(e.getUniqueId());
-        String title = plugin.getConfig().getString("bossBarsName", "&fLevel <powers> &fInfernal <mobName>");
-        String mobName = Objects.requireNonNullElse(e.getType().getName(), e.getType().name()).replace("_", " ");
-        if (e.getType() == EntityType.SKELETON) {
-            Skeleton sk = (Skeleton) e;
-            if (sk.getSkeletonType() == Skeleton.SkeletonType.WITHER) {
-                mobName = "WitherSkeleton";
-            }
+    private static void showBossBar(Player p, Entity entity) {
+        if (!(entity instanceof LivingEntity)) {
+            return;
         }
+
+        var mob = (LivingEntity) entity;
+
+        List<String> oldMobAbilityList = plugin.findMobAbilities(mob.getUniqueId());
+        String title = plugin.getConfig().getString("bossBarsName", "&fLevel <powers> &fInfernal <mobName>");
+        String mobName = Objects.requireNonNullElse(mob.getType().getKey().getKey(), mob.getType().name()).replace("_", " ");
+
+        if (mob.getType() == EntityType.WITHER_SKELETON) {
+            mobName = "WitherSkeleton";
+        }
+
         String prefix = plugin.getConfig().getString("namePrefix", "&fInfernal");
         if (plugin.getConfig().getString("levelPrefixs." + oldMobAbilityList.size()) != null) {
-            prefix = plugin.getConfig().getString("levelPrefixs." + oldMobAbilityList.size());
+            prefix = plugin.getConfig().getString("levelPrefixs." + oldMobAbilityList.size(), "");
         }
         title = title.replace("<prefix>", prefix.substring(0, 1).toUpperCase() + prefix.substring(1));
         title = title.replace("<mobName>", mobName.substring(0, 1).toUpperCase() + mobName.substring(1));
@@ -109,7 +118,7 @@ public class GUI implements Listener {
         title = title.replace("<abilities>", abilities.substring(0, 1).toUpperCase() + abilities.substring(1));
         title = ChatColor.translateAlternateColorCodes('&', title);
 
-        if (!bossBars.containsKey(e)) {
+        if (!bossBars.containsKey(mob)) {
             BarColor bc = BarColor.valueOf(plugin.getConfig().getString("bossBarSettings.defaultColor"));
             BarStyle bs = BarStyle.valueOf(plugin.getConfig().getString("bossBarSettings.defaultStyle"));
             //Per Level Settings
@@ -119,26 +128,33 @@ public class GUI implements Listener {
             String ls = plugin.getConfig().getString("bossBarSettings.perLevel." + oldMobAbilityList.size() + ".style");
             if (ls != null)
                 bs = BarStyle.valueOf(ls);
+
+            var entityName = mob.getType().getKey().getKey();
             //Per InfernalMob Settings
-            String mc = plugin.getConfig().getString("bossBarSettings.perMob." + e.getType().getName() + ".color");
+            String mc = plugin.getConfig().getString("bossBarSettings.perMob." + entityName + ".color");
             if (mc != null)
                 bc = BarColor.valueOf(mc);
-            String ms = plugin.getConfig().getString("bossBarSettings.perMob." + e.getType().getName() + ".style");
+            String ms = plugin.getConfig().getString("bossBarSettings.perMob." + entityName + ".style");
             if (ms != null)
                 bs = BarStyle.valueOf(ms);
             BossBar bar = Bukkit.createBossBar(title, bc, bs, BarFlag.CREATE_FOG);
             bar.setVisible(true);
-            bossBars.put(e, bar);
+            bossBars.put(mob, bar);
         }
-        if (!bossBars.get(e).getPlayers().contains(p))
-            bossBars.get(e).addPlayer(p);
-        float health = (float) ((Damageable) e).getHealth();
-        float maxHealth = (float) ((Damageable) e).getMaxHealth();
-        float setHealth = (health * 100.0f) / maxHealth;
-        bossBars.get(e).setProgress(setHealth / 100.0f);
+
+        if (!bossBars.get(mob).getPlayers().contains(p)) {
+            bossBars.get(mob).addPlayer(p);
+        }
+
+        var maxHealthAttribute = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+
+        if (maxHealthAttribute != null) {
+            double health = mob.getHealth();
+            double maxHealth = maxHealthAttribute.getBaseValue();
+            bossBars.get(mob).setProgress(health / maxHealth);
+        }
     }
 
-    @SuppressWarnings("deprecation")
     private static void clearInfo(Player player) {
         if (plugin.getConfig().getBoolean("enableBossBar")) {
             //BossBarAPI.removeBar(player);
@@ -147,7 +163,7 @@ public class GUI implements Listener {
                     hm.getValue().removePlayer(player);
         }
         if (plugin.getConfig().getBoolean("enableScoreBoard")) {
-            player.getScoreboard().resetScores(player);
+            player.getScoreboard().resetScores(player.getName());
             Objective sidebarObjective = player.getScoreboard().getObjective(DisplaySlot.SIDEBAR);
             if (sidebarObjective != null) {
                 sidebarObjective.unregister();
@@ -155,82 +171,61 @@ public class GUI implements Listener {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private static void fixScoreboard(Player player, Entity e, List<String> abilityList) {
-        if (plugin.getConfig().getBoolean("enableScoreBoard") && (e instanceof Damageable)) {
-            //String name = getMobNameTag(e);
-            //Get Display
-            //System.out.println("sb1");
-            if (playerScoreBoard.get(player.getName()) == null) {
-                //System.out.println("Creating ScoreBoard");
-                ScoreboardManager manager = Bukkit.getScoreboardManager();
-                if (manager == null) {
-                    return;
-                }
-                Scoreboard board = manager.getNewScoreboard();
-                playerScoreBoard.put(player.getName(), board);
-            }
-            //System.out.println("sb2");
-            Objective o;
-            Scoreboard board = playerScoreBoard.get(player.getName());
-            //System.out.println("Board = " + board);
-            if (board.getObjective(DisplaySlot.SIDEBAR) == null) {
-                o = board.registerNewObjective(player.getName(), "dummy");
-                o.setDisplaySlot(DisplaySlot.SIDEBAR);
-            } else {
-                o = board.getObjective(DisplaySlot.SIDEBAR);
-            }
-            if (o == null) {
+        if (!plugin.getConfig().getBoolean("enableScoreBoard") || !(e instanceof LivingEntity)) {
+            return;
+        }
+
+        if (playerScoreBoard.get(player.getName()) == null) {
+            //System.out.println("Creating ScoreBoard");
+            ScoreboardManager manager = Bukkit.getScoreboardManager();
+            if (manager == null) {
                 return;
             }
-            //System.out.println("sb3");
-            //Name
-            //System.out.println("Name: " + e.getType().getName());
-            //System.out.println("OBJ = " + o);
-            o.setDisplayName(Objects.requireNonNullElse(e.getType().getName(), e.getType().name()));
-            //System.out.println("Set ScoreBoard Name");
-            //Remove Old
-            //for(OfflinePlayer p : board.getPlayers())
-            //    board.resetScores(p);
-            for (String s : board.getEntries())
-                board.resetScores(s);
-            //Power Display
-            int score = 1;
-            //System.out.println("sb4");
-            for (String ability : abilityList) {
-                //Score pointsDisplayScore = o.getScore(Bukkit.getOfflinePlayer("§r" + ability));
-                //pointsDisplayScore.setScore(score);
-                o.getScore("§r" + ability).setScore(score);
-                score = score + 1;
-            }
-            //Score abDisplayScore = o.getScore(Bukkit.getOfflinePlayer("§e§lAbilities:"));
-            //abDisplayScore.setScore(score);
-            o.getScore("§e§lAbilities:").setScore(score);
-            //Health
-            //System.out.println("sb5");
-            if (plugin.getConfig().getBoolean("showHealthOnScoreBoard")) {
-                //System.out.println("shosb");
-                //Display HP
-                score = score + 1;
-                float health = (float) ((Damageable) e).getHealth();
-                float maxHealth = (float) ((Damageable) e).getMaxHealth();
-                double roundOff = Math.round(health * 100.0) / 100.0;
-                //Score hDisplayScore = o.getScore(Bukkit.getOfflinePlayer(roundOff + "/" + maxHealth));
-                //hDisplayScore.setScore(score);
-                o.getScore(roundOff + "/" + maxHealth).setScore(score);
-                score = score + 1;
-                //Score htDisplayScore = o.getScore(Bukkit.getOfflinePlayer("§e§lHealth:"));
-                //htDisplayScore.setScore(score);
-                o.getScore("§e§lHealth:").setScore(score);
-            }
-            //System.out.println("sb6");
-            //Display
-            player.getScoreboard();
-            if (player.getScoreboard().getObjective(DisplaySlot.SIDEBAR) == null || player.getScoreboard().getObjective(DisplaySlot.SIDEBAR).getName() == null || !player.getScoreboard().getObjective(DisplaySlot.SIDEBAR).getName().equals(board.getObjective(DisplaySlot.SIDEBAR).getName())) {
-                //System.out.println("Set SB");
-                player.setScoreboard(board);
-            }
-            //System.out.println("sb7");
+            Scoreboard board = manager.getNewScoreboard();
+            playerScoreBoard.put(player.getName(), board);
+        }
+
+
+        Scoreboard board = playerScoreBoard.get(player.getName());
+        Objective objective =
+                Optional.ofNullable(board.getObjective(DisplaySlot.SIDEBAR))
+                        .orElseGet(() -> {
+                            var temp = board.registerNewObjective(player.getName(), "dummy", "dummy");
+                            temp.setDisplaySlot(DisplaySlot.SIDEBAR);
+                            return temp;
+                        });
+
+
+        objective.setDisplayName(e.getType().getKey().getKey());
+
+        board.getEntries().forEach(board::resetScores);
+
+        int score = 1;
+
+        for (String ability : abilityList) {
+            objective.getScore("§r" + ability).setScore(score);
+            score = score + 1;
+        }
+
+        objective.getScore("§e§lAbilities:").setScore(score);
+
+        var livingEntity = (LivingEntity) e;
+        var maxHealthAttribute = livingEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (plugin.getConfig().getBoolean("showHealthOnScoreBoard") && maxHealthAttribute != null) {
+            score = score + 1;
+
+            double roundOff = Math.round(livingEntity.getHealth() * 100.0) / 100.0;
+            objective.getScore(roundOff + "/" + maxHealthAttribute.getBaseValue()).setScore(score);
+
+            score = score + 1;
+            objective.getScore("§e§lHealth:").setScore(score);
+        }
+
+        player.getScoreboard();
+        if (player.getScoreboard().getObjective(DisplaySlot.SIDEBAR) == null ||
+                !objective.equals(player.getScoreboard().getObjective(DisplaySlot.SIDEBAR))) {
+            player.setScoreboard(board);
         }
     }
 
@@ -250,12 +245,12 @@ public class GUI implements Listener {
         }
     }
 
-    @SuppressWarnings("deprecation")
+
     public String getMobNameTag(Entity entity) {
         List<String> oldMobAbilityList = plugin.findMobAbilities(entity.getUniqueId());
         try {
             String title = plugin.getConfig().getString("nameTagsName", "&fInfernal <mobName>");
-            String mobName = Objects.requireNonNullElse(entity.getType().getName(), entity.getType().name()).replace("_", " ");
+            String mobName = entity.getType().getKey().getKey().replace("_", " ");
 
             title = title.replace("<mobName>", mobName.substring(0, 1).toUpperCase() + mobName.substring(1));
             title = title.replace("<mobLevel>", "" + oldMobAbilityList.size());
@@ -269,7 +264,7 @@ public class GUI implements Listener {
             //Prefix
             String prefix = plugin.getConfig().getString("namePrefix", "");
             if (plugin.getConfig().getString("levelPrefixs." + oldMobAbilityList.size()) != null)
-                prefix = plugin.getConfig().getString("levelPrefixs." + oldMobAbilityList.size());
+                prefix = plugin.getConfig().getString("levelPrefixs." + oldMobAbilityList.size(), "");
             title = title.replace("<prefix>", prefix.substring(0, 1).toUpperCase() + prefix.substring(1));
             title = ChatColor.translateAlternateColorCodes('&', title);
             return title;

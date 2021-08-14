@@ -380,8 +380,9 @@ public class EventListener implements Listener {
                     if ((player != null) && (player.getGameMode() == GameMode.CREATIVE) && (plugin.getConfig().getBoolean("noCreativeDrops"))) {
                         return;
                     }
-                    @SuppressWarnings("deprecation")
-                    ItemStack drop = plugin.getRandomLoot(player, event.getEntity().getType().getName(), aList.size());
+
+                    var entityName = event.getEntity().getType().getKey().getKey();
+                    ItemStack drop = plugin.getRandomLoot(player, entityName, aList.size());
                     if (drop != null) {
                         int xpm = plugin.getConfig().getInt("xpMultiplier");
                         int xp = event.getDroppedExp() * xpm;
