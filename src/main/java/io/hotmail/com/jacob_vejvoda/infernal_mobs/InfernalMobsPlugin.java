@@ -225,23 +225,27 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     private void scoreCheck() {
         for (Player p : getServer().getOnlinePlayers())
             GUI.fixBar(p);
-        HashMap<Entity, Entity> tmp = (HashMap<Entity, Entity>) mountList.clone();
-        for (Map.Entry<Entity, Entity> hm : tmp.entrySet()) {
-            if ((hm.getKey() != null) && (!hm.getKey().isDead())) {
-                if ((hm.getValue().isDead()) && ((hm.getKey() instanceof LivingEntity))) {
-                    String fate = getConfig().getString("mountFate", "nothing");
-                    if (fate.equals("death")) {
-                        LivingEntity le = (LivingEntity) hm.getKey();
-                        le.damage(9.99999999E8D);
-                        mountList.remove(hm.getKey());
-                    } else if (fate.equals("removal")) {
-                        hm.getKey().remove();
-                        getLogger().log(Level.INFO, "Entity remove due to Fate");
-                        mountList.remove(hm.getKey());
-                    }
+
+        var tmp = new HashMap<>(mountList);
+
+        for (var entry : tmp.entrySet()) {
+            var rider = entry.getKey();
+            var mountedMob = entry.getValue();
+
+            if (rider == null || rider.isDead()) {
+                mountList.remove(rider);
+                return;
+            }
+
+            if (mountedMob.isDead() && rider instanceof LivingEntity) {
+                String fate = getConfig().getString("mountFate", "nothing");
+                if (fate.equals("death")) {
+                    ((LivingEntity) rider).damage(999999999);
+                } else if (fate.equals("removal")) {
+                    rider.remove();
                 }
-            } else {
-                mountList.remove(hm.getKey());
+
+                mountList.remove(rider);
             }
         }
     }
