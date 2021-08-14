@@ -300,11 +300,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 return;
             }
 
-            int max;
-
-            if (fixed) {
-                max = 1;
-            } else {
+            if (!fixed) {
+                int max;
                 int mc = getConfig().getInt("mobChances." + entityType);
 
                 if (mc > 0) {
@@ -312,10 +309,10 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 } else {
                     max = getConfig().getInt("chance");
                 }
-            }
 
-            if (RANDOM.nextInt(max) + 1 != 1) {
-                return;
+                if (RANDOM.nextInt(max) + 1 != 1) {
+                    return;
+                }
             }
 
             var abilities = getAbilitiesAmount(e);
