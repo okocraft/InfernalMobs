@@ -49,7 +49,7 @@ public class EventListener implements Listener {
         plugin = instance;
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent e) {
         final Player player = e.getPlayer();
         ItemStack s = plugin.getDiviningStaff();
@@ -124,7 +124,7 @@ public class EventListener implements Listener {
             return entity.getLocation().toVector();
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent e) {
         Player p = e.getPlayer();
         Entity ent = e.getRightClicked();
@@ -147,7 +147,7 @@ public class EventListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamaged(EntityDamageEvent e) {
         Entity mob = e.getEntity();
         if (plugin.infernalMobMap.containsKey(mob.getUniqueId())) {
@@ -168,7 +168,7 @@ public class EventListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onLightningStrike(LightningStrikeEvent e) {
         for (Entity m : e.getLightning().getNearbyEntities(6.0D, 6.0D, 6.0D)) {
             if (plugin.infernalMobMap.containsKey(m.getUniqueId())) {
@@ -194,7 +194,7 @@ public class EventListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityAttack(EntityDamageByEntityEvent event) {
         if (!plugin.infernalMobMap.containsKey(event.getEntity().getUniqueId())) {
             return;
@@ -238,7 +238,7 @@ public class EventListener implements Listener {
     }
 
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMobSpawn(CreatureSpawnEvent event) {
         World world = event.getEntity().getWorld();
 
@@ -259,7 +259,7 @@ public class EventListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onSpawnerSpawn(SpawnerSpawnEvent e) {
         Block spawner = e.getSpawner().getBlock();
 
@@ -283,7 +283,7 @@ public class EventListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent e) {
         if (e.getBlock().getType() == Material.SPAWNER) {
             String name = plugin.getLocationName(e.getBlock().getLocation());
