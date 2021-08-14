@@ -18,7 +18,6 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,11 +50,8 @@ public class GUI implements Listener {
     }
 
     static void fixBar(Player p) {
-        //System.out.println("fixBar");
         Entity b = getNearbyBoss(p);
         if (b != null) {
-            System.out.println("Dead: " + b.isDead());
-            System.out.println("HP: " + ((Damageable) b).getHealth());
             if (b.isDead() || ((Damageable) b).getHealth() <= 0) {
                 if (plugin.getConfig().getBoolean("enableBossBar")) {
                     Optional.ofNullable(bossBars.remove(b)).ifPresent(BossBar::removeAll);
@@ -175,7 +171,6 @@ public class GUI implements Listener {
         }
 
         if (playerScoreBoard.get(player.getName()) == null) {
-            //System.out.println("Creating ScoreBoard");
             ScoreboardManager manager = Bukkit.getScoreboardManager();
             if (manager == null) {
                 return;
@@ -229,7 +224,6 @@ public class GUI implements Listener {
 
     public void setName(Entity ent) {
         try {
-            //System.out.println("SN1 " + ent);
             if (plugin.getConfig().getInt("nameTagsLevel") != 0) {
                 String title = getMobNameTag(ent);
                 ent.setCustomName(title);

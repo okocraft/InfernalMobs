@@ -592,7 +592,6 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     public ItemStack getItem(int loot) {
-        //System.out.println("Get Loot: " + loot);
         try {
             String setItem = lootFile.getString("loot." + loot + ".item");
 

@@ -61,7 +61,6 @@ public class EventListener implements Listener {
         }
         if (meta.getDisplayName().equals(s.getItemMeta().getDisplayName())) {
             Entity boss = GUI.getNearbyBoss(player);
-            //System.out.println("GB");
             //Make Look At
             if (boss == null) {
                 return;
@@ -276,12 +275,9 @@ public class EventListener implements Listener {
                                 event.setCancelled(true);
                             }
                         }
-                    }/*else if (!plugin.getConfig().getBoolean("enableFarmingDrops")) {
-						return;
-					}*/
+                    }
                 }
             }
-            //System.out.println("InfernalMob Spawn 2");
             if ((event.getEntity().hasMetadata("NPC")) || (event.getEntity().hasMetadata("shopkeeper"))) {
                 return;
             }
