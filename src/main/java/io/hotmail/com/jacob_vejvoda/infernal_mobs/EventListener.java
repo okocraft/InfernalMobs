@@ -52,6 +52,11 @@ public class EventListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent e) {
         final Player player = e.getPlayer();
+
+        if (!isEnabledWorld(player.getWorld())) {
+            return;
+        }
+
         ItemStack s = plugin.getDiviningStaff();
         ItemMeta meta = player.getInventory().getItemInMainHand().getItemMeta();
         if (s.getItemMeta() == null || !s.getItemMeta().hasDisplayName() || meta == null || !meta.hasDisplayName()) {
@@ -128,8 +133,7 @@ public class EventListener implements Listener {
     public void onPlayerInteractEntity(PlayerInteractEntityEvent e) {
         Player p = e.getPlayer();
         Entity ent = e.getRightClicked();
-        if (plugin.errorList.contains(p)) {
-            plugin.errorList.remove(p);
+        if (plugin.errorList.remove(p)) {
             p.sendMessage("§6Error report:");
 
             String name = "";
@@ -150,9 +154,10 @@ public class EventListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamaged(EntityDamageEvent e) {
         Entity mob = e.getEntity();
-        if (plugin.infernalMobMap.containsKey(mob.getUniqueId())) {
+        if (isEnabledWorld(mob.getWorld()) &&
+                plugin.infernalMobMap.containsKey(mob.getUniqueId())) {
             for (Entity entity : mob.getNearbyEntities(64.0D, 64.0D, 64.0D)) {
-                if ((entity instanceof Player)) {
+                if (entity instanceof Player) {
                     GUI.fixBar((Player) entity);
                 }
             }
@@ -170,19 +175,23 @@ public class EventListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onLightningStrike(LightningStrikeEvent e) {
-        for (Entity m : e.getLightning().getNearbyEntities(6.0D, 6.0D, 6.0D)) {
-            if (plugin.infernalMobMap.containsKey(m.getUniqueId())) {
-                e.setCancelled(true);
-                break;
+        if (isEnabledWorld(e.getWorld())) {
+            for (Entity m : e.getLightning().getNearbyEntities(6.0D, 6.0D, 6.0D)) {
+                if (plugin.infernalMobMap.containsKey(m.getUniqueId())) {
+                    e.setCancelled(true);
+                    break;
+                }
             }
         }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onChunkLoad(ChunkLoadEvent e) {
-        for (Entity ent : e.getChunk().getEntities()) {
-            if (plugin.mobSaveFile.getString(ent.getUniqueId().toString()) != null) {
-                plugin.giveMobPowers(ent);
+        if (isEnabledWorld(e.getWorld())) {
+            for (Entity ent : e.getChunk().getEntities()) {
+                if (plugin.mobSaveFile.getString(ent.getUniqueId().toString()) != null) {
+                    plugin.giveMobPowers(ent);
+                }
             }
         }
     }
@@ -196,14 +205,16 @@ public class EventListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityAttack(EntityDamageByEntityEvent event) {
-        if (!plugin.infernalMobMap.containsKey(event.getEntity().getUniqueId())) {
+        var victim = event.getEntity();
+
+        if (!isEnabledWorld(victim.getWorld())|| !plugin.infernalMobMap.containsKey(victim.getUniqueId())) {
             return;
         }
 
         try {
             Entity attacker = event.getDamager();
-            Entity victim = event.getEntity();
             Entity mob;
+
             if ((attacker instanceof Projectile)) {
                 Projectile projectile = (Projectile) event.getDamager();
                 if (((projectile.getShooter() instanceof Player)) && (!(victim instanceof Player))) {
@@ -242,6 +253,10 @@ public class EventListener implements Listener {
     public void onMobSpawn(CreatureSpawnEvent event) {
         World world = event.getEntity().getWorld();
 
+        if (!isEnabledWorld(world)) {
+            return;
+        }
+
         if (event.getEntity().hasMetadata("NPC") || event.getEntity().hasMetadata("shopkeeper") || event.getEntity().getCustomName() != null) {
             return;
         }
@@ -251,8 +266,7 @@ public class EventListener implements Listener {
         }
 
         String entName = event.getEntity().getType().name();
-        if ((plugin.getConfig().getStringList("mobworlds").contains(world.getName()) || plugin.getConfig().getStringList("mobworlds").contains("<all>")) &&
-                plugin.getConfig().getStringList("enabledmobs").contains(entName) &&
+        if (plugin.getConfig().getStringList("enabledmobs").contains(entName) &&
                 plugin.getConfig().getInt("naturalSpawnHeight") < event.getEntity().getLocation().getY() &&
                 plugin.getConfig().getStringList("enabledSpawnReasons").contains(event.getSpawnReason().toString())) {
             plugin.makeInfernal(event.getEntity(), false);
@@ -262,6 +276,10 @@ public class EventListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onSpawnerSpawn(SpawnerSpawnEvent e) {
         Block spawner = e.getSpawner().getBlock();
+
+        if (!isEnabledWorld(spawner.getWorld())) {
+            return;
+        }
 
         String name = plugin.getLocationName(spawner.getLocation());
         var key = "infernalSpawners." + plugin.getLocationName(spawner.getLocation());
@@ -379,5 +397,10 @@ public class EventListener implements Listener {
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, null, e);
         }
+    }
+
+    private boolean isEnabledWorld(World world) {
+        var mobWorlds = plugin.getConfig().getStringList("mobworlds");
+        return mobWorlds.contains("<all>") || mobWorlds.contains(world.getName());
     }
 }
