@@ -23,11 +23,9 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -177,16 +175,6 @@ public class EventListener implements Listener {
                 break;
             }
         }
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        plugin.giveMobsPowers();
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
-        plugin.giveMobsPowers();
     }
 
     @EventHandler(priority = EventPriority.HIGH)
