@@ -83,7 +83,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-@SuppressWarnings({"unchecked"})
 public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
     private static final Map<String, PotionEffect> EFFECT_MAP =
@@ -682,9 +681,16 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 //Banners
                 if (meta instanceof BannerMeta) {
                     BannerMeta b = (BannerMeta) meta;
-                    List<Pattern> patList = (List<Pattern>) lootFile.getList("loot." + loot + ".patterns");
-                    if (patList != null && (!patList.isEmpty()))
-                        b.setPatterns(patList);
+                    var patterns =
+                            lootFile.getList("loot." + loot + ".patterns", Collections.emptyList())
+                                    .stream()
+                                    .filter(obj -> obj instanceof Pattern)
+                                    .map(obj -> (Pattern) obj)
+                                    .collect(Collectors.toList());
+
+                    if (!patterns.isEmpty()) {
+                        b.setPatterns(patterns);
+                    }
                     stack.setItemMeta(b);
                 }
                 //Shield
@@ -695,7 +701,13 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     if (blockState instanceof Banner) {
                         Banner b = (Banner) blockState;
                         Optional.ofNullable(lootFile.getString("loot." + loot + ".colour")).map(DyeColor::valueOf).ifPresent(b::setBaseColor);
-                        Optional.ofNullable((List<Pattern>) lootFile.getList("loot." + loot + ".patterns")).ifPresent(b::setPatterns);
+                        var patterns =
+                                lootFile.getList("loot." + loot + ".patterns", Collections.emptyList())
+                                        .stream()
+                                        .filter(obj -> obj instanceof Pattern)
+                                        .map(obj -> (Pattern) obj)
+                                        .collect(Collectors.toList());
+                        b.setPatterns(patterns);
                         b.update();
                         bmeta.setBlockState(b);
                         stack.setItemMeta(bmeta);
