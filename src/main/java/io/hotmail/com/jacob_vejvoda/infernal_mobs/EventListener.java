@@ -268,7 +268,6 @@ public class EventListener implements Listener {
         var delay = plugin.mobSaveFile.getInt(key, -1);
 
         if (delay < 0) {
-            e.setCancelled(true);
             return;
         }
 
