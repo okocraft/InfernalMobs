@@ -203,13 +203,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 e.printStackTrace();
             }
         }
-        //Register Metrics
-        try {
-            Metrics metrics = new Metrics(this);
-            metrics.start();
-        } catch (IOException e) {
-            // Failed to submit the stats :-(
-        }
+
         applyEffect();
         reloadPowers();
         showEffect();
