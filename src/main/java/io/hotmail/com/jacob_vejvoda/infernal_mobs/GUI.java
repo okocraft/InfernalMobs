@@ -106,8 +106,7 @@ public class GUI implements Listener {
                 }
             } while (title.length() + abilities.length() + mobName.length() > 64);
         } catch (Exception x) {
-            System.out.println("showBossBar error: ");
-            x.printStackTrace();
+            plugin.getLogger().log(Level.SEVERE, null, x);
         }
         title = title.replace("<abilities>", abilities.substring(0, 1).toUpperCase() + abilities.substring(1));
         title = ChatColor.translateAlternateColorCodes('&', title);
@@ -232,8 +231,7 @@ public class GUI implements Listener {
                 }
             }
         } catch (Exception x) {
-            System.out.println("Error in setName: ");
-            x.printStackTrace();
+            plugin.getLogger().log(Level.SEVERE, null, x);
         }
     }
 

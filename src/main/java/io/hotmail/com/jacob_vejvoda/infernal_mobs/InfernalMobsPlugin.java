@@ -123,8 +123,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 getConfig().set("configVersion", Bukkit.getVersion().split(":")[1].replace(")", "").trim());
                 saveConfig();
             } else if (!Bukkit.getVersion().contains(configVersion)) {
-                System.out.println(Bukkit.getVersion() + " contains " + getConfig().getString("configVersion"));
-                getLogger().log(Level.INFO, "Old config found, deleting!");
+                getLogger().info(Bukkit.getVersion() + " contains " + getConfig().getString("configVersion"));
+                getLogger().info("Old config found, deleting!");
                 new File(getDataFolder() + File.separator + "config.yml").delete();
             }
         }
@@ -562,9 +562,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             } else
                 return null;
         } catch (Exception e) {
-            System.out.println("Error in get random loot ");
-            e.printStackTrace();
-            System.out.println("Error: No valid drops found!");
+            getLogger().warning("Error in get random loot: No valid drops found!");
         }
         return null;
     }
@@ -770,8 +768,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                                         enchList.add(le);
                                     }
                                 } else {
-                                    System.out.println("Error: No valid drops found!");
-                                    System.out.println("Error: " + enchantment + " is not a valid enchantment!");
+                                    getLogger().warning("Error: No valid drops found!");
+                                    getLogger().warning("Error: " + enchantment + " is not a valid enchantment!");
                                     return null;
                                 }
                             }
@@ -902,7 +900,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             if (!flags.isEmpty())
                 fc.set(path + ".flags", flags);
         } else {
-            System.out.println("Item is null!");
+            getLogger().warning("Item is null!");
         }
 
         saveAsync(lootFile, lootYML);
@@ -928,7 +926,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     int maxSetAmount = Integer.parseInt(split[1]);
                     setAmount = RANDOM.nextInt(maxSetAmount - minSetAmount + 1) + minSetAmount;
                 } catch (Exception e) {
-                    System.out.println("getIntFromString: " + e);
+                    getLogger().log(Level.SEVERE, null, e);
                 }
             } else {
                 setAmount = Integer.parseInt(setAmountString);
@@ -1480,7 +1478,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                                     .orElse(null);
 
                     if (newEnt == null) {
-                        System.out.println("Infernal Mobs can't find mob type: " + mobName + "!");
+                        getLogger().warning("Infernal Mobs can't find mob type: " + mobName + "!");
                         return;
                     }
                     InfernalMob newMob;
@@ -1499,8 +1497,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
                     addHealth(newMob, aList);
                 } catch (Exception ex) {
-                    System.out.print("Morph Error: ");
-                    ex.printStackTrace();
+                    getLogger().log(Level.SEVERE, "Morph Error", ex);
                 }
             }
             if ((ability.equals("molten")) && (isLegitVictim(atc, isPlayerVictim, ability))) {
@@ -2396,14 +2393,12 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 var itemKeys = itemSection.getKeys(false);
 
                 for (String i : lootSection.getKeys(false)) {
-                    String oid = lootFile.getInt("loot." + i + ".item") + "";
-                    System.out.println(i);
-                    System.out.println("loot." + i + ".item");
-                    System.out.println(oid + ": " + itemKeys.contains(oid));
+                    String oid = String.valueOf(lootFile.getInt("loot." + i + ".item"));
                     if (itemKeys.contains(oid)) {
                         lootFile.set("loot." + i + ".item", getConfig().getString("items." + oid));
-                    } else
-                        System.out.println("ERROR: " + oid);
+                    } else {
+                        getLogger().warning("ERROR in loot section: " + oid);
+                    }
                 }
 
                 saveAsync(lootFile, lootYML);
