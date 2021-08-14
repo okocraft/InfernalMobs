@@ -85,6 +85,13 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
+    private static final Map<String, PotionEffect> EFFECT_MAP =
+            Map.of("cloaked", new PotionEffect(PotionEffectType.INVISIBILITY, 40, 1),
+                    "armoured", new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, 1),
+                    "sprint", new PotionEffect(PotionEffectType.SPEED, 40, 1),
+                    "molten", new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 40, 1));
+    private static final Random RANDOM = new Random();
+
     GUI gui;
     long serverTime = 0L;
     private int loops;
@@ -1079,144 +1086,119 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     }
 
     private void showEffect() {
-        try {
-            //GUI Bars And Stuff
-            scoreCheck();
-            //InfernalMob Stuff
-            List<InfernalMob> tmp = new ArrayList<>(infernalList);
-            for (InfernalMob m : tmp) {
-                final Entity mob = m.entity;
-                UUID id = mob.getUniqueId();
-                int index = idSearch(id);
-                if (mob.isValid() && (!mob.isDead()) && (index != -1) && (mob.getLocation().getChunk().isLoaded())) {
-                    //System.out.println("PE2");
-                    Location feet = mob.getLocation();
-                    Location head = mob.getLocation();
-                    head.setY(head.getY() + 1);
-                    if (getConfig().getBoolean("enableParticles")) {
-                        displayEffect(feet, m.effect);
-                        //mob.getWorld().playEffect(feet, Effect.ENDER_SIGNAL, 1);
-                        if (!isSmall(mob)) {
-                            displayEffect(head, m.effect);
-                            //mob.getWorld().playEffect(head, Effect.ENDER_SIGNAL, 1);
-                        }
-                        if (mob.getType() == EntityType.ENDERMAN || mob.getType() == EntityType.IRON_GOLEM) {
-                            head.setY(head.getY() + 1);
-                            displayEffect(head, m.effect);
-                            //mob.getWorld().playEffect(head, Effect.ENDER_SIGNAL, 1);
-                        }
-                    }
-                    //Ability's
-                    List<String> abilityList = findMobAbilities(id);
-                    //System.out.println("PE1");
-                    if (!mob.isDead()) {
-                        for (String ability : abilityList) {
-                            Random rand = new Random();
-                            int min = 1;
-                            int max = 10;
-                            int randomNum = rand.nextInt(max - min) + min;
-                            //System.out.println("PE: " + ability);
-                            switch (ability) {
-                                case "cloaked":
-                                    ((LivingEntity) mob).addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 40, 1), true);
-                                    break;
-                                case "armoured":
-                                    if ((!(mob instanceof Skeleton)) && (!(mob instanceof Zombie))) {
-                                        ((LivingEntity) mob).addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, 1), true);
-                                    }
-                                    break;
-                                case "1up":
-                                    if (((org.bukkit.entity.Damageable) mob).getHealth() <= 5) {
-                                        InfernalMob oneUpper = infernalList.get(index);
-                                        if (oneUpper.lives > 1) {
-                                            //System.out.print("1");//-------------------------------Debug
-                                            // ((org.bukkit.entity.Damageable) mob).setHealth(((org.bukkit.entity.Damageable) mob).);
+        //GUI Bars And Stuff
+        scoreCheck();
+        var rand = new Random();
 
-                                            //System.out.print("UP!");//-------------------------------Debug
-                                            //InfernalMob newMob = new InfernalMob(mob, id, mob.getWorld(), oneUpper.infernal, abilityList, 1, getEffect());
-                                            //infernalList.set(index, newMob);
-                                            ((LivingEntity) mob).setHealth(((LivingEntity) mob).getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
-                                            oneUpper.setLives(oneUpper.lives - 1);
-                                        }
-                                    }
-                                    break;
-                                case "sprint":
-                                    ((LivingEntity) mob).addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 40, 1), true);
-                                    break;
-                                case "molten":
-                                    ((LivingEntity) mob).addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 40, 1), true);
-                                    break;
-                                case "tosser":
-                                    if (randomNum < 6) {
-                                        double radius = 6D;
-                                        List<Player> near = mob.getWorld().getPlayers();
-                                        for (Player player : near) {
-                                            if (player.getLocation().distance(mob.getLocation()) <= radius) {
-                                                if (!player.isSneaking() && player.getGameMode() != GameMode.CREATIVE) {
-                                                    player.setVelocity(mob.getLocation().toVector().subtract(player.getLocation().toVector()));
-                                                }
-                                            }
-                                        }
-                                    }
-                                    break;
-                                case "gravity":
-                                    if (randomNum >= 9) {
-                                        double radius = 10D;
-                                        List<Player> near = mob.getWorld().getPlayers();
-                                        for (Player player : near) {
-                                            if (player.getLocation().distance(mob.getLocation()) <= radius) {
-                                                Location feetBlock = player.getLocation();
-                                                feetBlock.setY(feetBlock.getY() - 2);
-                                                Block block = feetBlock.getWorld().getBlockAt(feetBlock);
-                                                if (block.getType() != Material.AIR && player.getGameMode() != GameMode.CREATIVE) {
-                                                    int amount = 6;
-                                                    if (getConfig().getString("gravityLevitateLength") != null) {
-                                                        amount = getConfig().getInt("gravityLevitateLength");
-                                                    }
-                                                    levitate(player, amount);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    break;
-                                case "ghastly":
-                                case "necromancer":
-                                    if ((randomNum == 6) && (!mob.isDead())) {
-                                        double radius = 20D;
-                                        List<Player> near = mob.getWorld().getPlayers();
-                                        for (Player player : near) {
-                                            if (player.getLocation().distance(mob.getLocation()) <= radius && player.getGameMode() != GameMode.CREATIVE) {
-                                                Fireball fb;
-                                                if (ability.equals("ghastly")) {
-                                                    fb = ((LivingEntity) mob).launchProjectile(Fireball.class);
-                                                    player.getWorld().playSound(player.getLocation(), Sound.AMBIENT_CAVE, 5, 1);
-                                                } else {
-                                                    fb = ((LivingEntity) mob).launchProjectile(WitherSkull.class);
-                                                }
-                                                //Location loc1 = player.getEyeLocation();
-                                                //Location loc2 = mob.getLocation();
-                                                //int arrowSpeed = 1;
-                                                //loc2.setY(loc2.getBlockY()+2);
-                                                //loc2.setX(loc2.getBlockX()+0.5);
-                                                //loc2.setZ(loc2.getBlockZ()+0.5);
-                                                //Arrow ar = mob.getWorld().spawnArrow(loc2, new Vector(loc1.getX()-loc2.getX(), loc1.getY()-loc2.getY(), loc1.getZ()-loc2.getZ()), arrowSpeed, 12);
-                                                //Vector vel = ar.getVelocity();
-                                                //fb.setVelocity(vel);
-                                                //ar.remove();
-                                                moveToward(fb, player.getLocation(), 0.6);
-                                            }
-                                        }
-                                    }
-                                    break;
-                            }
-                        }
-                    }
+        for (var infernalMob : infernalList) {
+            var entity = infernalMob.entity;
+
+            if (!entity.isValid() || entity.isDead() || !entity.getLocation().getChunk().isLoaded()) {
+                continue;
+            }
+
+            Location head = entity.getLocation();
+            head.setY(head.getY() + 1);
+
+            if (getConfig().getBoolean("enableParticles")) {
+                displayEffect(entity.getLocation(), infernalMob.effect);
+
+                if (!isSmall(entity)) {
+                    displayEffect(head, infernalMob.effect);
+                }
+
+                if (entity.getType() == EntityType.ENDERMAN || entity.getType() == EntityType.IRON_GOLEM) {
+                    head.setY(head.getY() + 1);
+                    displayEffect(head, infernalMob.effect);
                 }
             }
-        } catch (Exception x) {
-            x.printStackTrace();
+
+            //Ability's
+            if (entity.isDead() || !(entity instanceof LivingEntity)) {
+                continue;
+            }
+
+            var mob = (LivingEntity) entity;
+
+            for (var ability : infernalMob.abilityList) {
+                int randomNum = rand.nextInt(9) + 1;
+
+                switch (ability) {
+                    case "armoured":
+                        if (entity instanceof Skeleton || entity instanceof Zombie) {
+                            break;
+                        }
+                    case "cloaked":
+                    case "sprint":
+                    case "molten":
+                        Optional.ofNullable(EFFECT_MAP.get(ability)).ifPresent(mob::addPotionEffect);
+                        break;
+                    case "1up":
+                        if (mob.getHealth() <= 5 && infernalMob.lives > 1) {
+                            var maxHealth = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                            if (maxHealth != null) {
+                                mob.setHealth(maxHealth.getValue());
+                                infernalMob.setLives(infernalMob.lives - 1);
+                            }
+                        }
+                        break;
+                    case "tosser":
+                        if (randomNum < 6) {
+                            double radius = 6D;
+                            for (Player player : entity.getWorld().getPlayers()) {
+                                if (player.getLocation().distance(entity.getLocation()) <= radius) {
+                                    if (!player.isSneaking() && player.getGameMode() != GameMode.CREATIVE) {
+                                        player.setVelocity(entity.getLocation().toVector().subtract(player.getLocation().toVector()));
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case "gravity":
+                        if (randomNum < 9) {
+                            break;
+                        }
+
+                        for (Player player : entity.getWorld().getPlayers()) {
+                            if (player.getLocation().distance(entity.getLocation()) <= 10) {
+                                Location feetBlock = player.getLocation();
+                                feetBlock.setY(feetBlock.getY() - 2);
+                                var block = player.getWorld().getBlockAt(feetBlock);
+                                if (block.getType() != Material.AIR && player.getGameMode() != GameMode.CREATIVE) {
+                                    levitate(player, getConfig().getInt("gravityLevitateLength", 6));
+                                }
+                            }
+                        }
+                        break;
+                    case "ghastly":
+                    case "necromancer":
+                        if (randomNum != 6) {
+                            break;
+                        }
+
+                        for (Player player : entity.getWorld().getPlayers()) {
+                            if (player.getGameMode() != GameMode.SURVIVAL || player.getGameMode() != GameMode.ADVENTURE) {
+                                continue;
+                            }
+
+                            if (player.getLocation().distance(entity.getLocation()) <= 20) {
+                                Fireball fb;
+                                if (ability.equals("ghastly")) {
+                                    fb = mob.launchProjectile(Fireball.class);
+                                    player.getWorld().playSound(player.getLocation(), Sound.AMBIENT_CAVE, 5, 1);
+                                } else {
+                                    fb = mob.launchProjectile(WitherSkull.class);
+                                }
+
+                                moveToward(fb, player.getLocation(), 0.6);
+                            }
+                        }
+                        break;
+                }
+            }
         }
-        serverTime = serverTime + 1;
+
+        serverTime++;
         getServer().getScheduler().scheduleSyncDelayedTask(this, this::showEffect, 20);
     }
 
