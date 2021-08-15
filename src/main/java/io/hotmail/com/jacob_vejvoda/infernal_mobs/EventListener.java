@@ -207,7 +207,7 @@ public class EventListener implements Listener {
     public void onEntityAttack(EntityDamageByEntityEvent event) {
         var victim = event.getEntity();
 
-        if (!isEnabledWorld(victim.getWorld())|| !plugin.infernalMobMap.containsKey(victim.getUniqueId())) {
+        if (!isEnabledWorld(victim.getWorld()) || !plugin.infernalMobMap.containsKey(victim.getUniqueId())) {
             return;
         }
 
@@ -386,13 +386,16 @@ public class EventListener implements Listener {
                     return;
                 }
 
-                var entityName = event.getEntity().getType().getKey().getKey();
-                ItemStack drop = plugin.getRandomLoot(player, entityName, abilities.size());
-                if (drop != null) {
-                    int xpm = plugin.getConfig().getInt("xpMultiplier");
-                    int xp = event.getDroppedExp() * xpm;
-                    event.setDroppedExp(xp);
+                if (InfernalMobsPlugin.RANDOM.nextInt(plugin.getConfig().getInt("dropChance")) == 0) {
+                    var entityName = event.getEntity().getType().getKey().getKey();
+                    var drop = plugin.getRandomLoot(player, entityName, abilities.size());
+
+                    if (drop != null) {
+                        event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), drop);
+                    }
                 }
+
+                event.setDroppedExp(event.getDroppedExp() * plugin.getConfig().getInt("xpMultiplier", 1));
             }
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, null, e);
