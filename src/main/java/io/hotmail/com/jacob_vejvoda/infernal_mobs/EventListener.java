@@ -274,8 +274,8 @@ public class EventListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onSpawnerSpawn(SpawnerSpawnEvent e) {
-        Block spawner = e.getSpawner().getBlock();
+    public void onSpawnerSpawn(SpawnerSpawnEvent event) {
+        Block spawner = event.getSpawner().getBlock();
 
         if (!isEnabledWorld(spawner.getWorld())) {
             return;
@@ -286,17 +286,22 @@ public class EventListener implements Listener {
         var delay = plugin.mobSaveFile.getInt(key, -1);
 
         if (delay < 0) {
-            return;
+            String entName = event.getEntity().getType().name();
+            if (plugin.getConfig().getStringList("enabledmobs").contains(entName) &&
+                    plugin.getConfig().getInt("naturalSpawnHeight") < event.getEntity().getLocation().getY() &&
+                    plugin.getConfig().getStringList("enabledSpawnReasons").contains(CreatureSpawnEvent.SpawnReason.SPAWNER.toString())) {
+                plugin.makeInfernal(event.getEntity(), false);
+            }
         }
 
         long start = this.spawnerMap.computeIfAbsent(name, str -> plugin.serverTime);
         long passed = plugin.serverTime - start;
 
         if (delay <= passed) {
-            plugin.makeInfernal(e.getEntity(), true);
+            plugin.makeInfernal(event.getEntity(), true);
             this.spawnerMap.put(name, plugin.serverTime);
         } else {
-            e.setCancelled(true);
+            event.setCancelled(true);
         }
     }
 
