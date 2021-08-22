@@ -296,7 +296,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             var entityType = e.getType().name();
 
             if (e.isDead() || !e.isValid() ||
-                    (!getConfig().getStringList("enabledmobs").contains(entityType) && (!fixed || infernalMobMap.containsKey(uuid)))) {
+                    (!getConfig().getStringList("enabledmobs").contains(entityType) && infernalMobMap.containsKey(uuid))) {
                 return;
             }
 
@@ -310,16 +310,16 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     max = getConfig().getInt("chance");
                 }
 
-                if (RANDOM.nextInt(max) != 0) {
+                if (max != 1 && RANDOM.nextInt(max) != 0) {
                     return;
                 }
             }
 
             var abilities = getAbilitiesAmount(e);
 
-            var levelChance = getConfig().getInt("levelChance." + abilities.size(), 0) - 1;
+            var levelChance = getConfig().getInt("levelChance." + abilities.size(), 0);
 
-            if (0 < levelChance) {
+            if (1 < levelChance) {
                 if (RANDOM.nextInt(levelChance) != 0) {
                     return;
                 }
