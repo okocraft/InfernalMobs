@@ -15,6 +15,8 @@ public interface Ability {
 
     void showEffect(@NotNull Mob infernalMob);
 
+    void onDamaged(@NotNull Mob infernalMob);
+
     void onDamaged(@NotNull Mob infernalMob, @NotNull Mob damager);
 
     void onKilled(@NotNull Mob infernalMob, @NotNull Mob killer);
