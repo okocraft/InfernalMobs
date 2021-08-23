@@ -27,18 +27,6 @@ public class OneUpAbility extends AbstractAbility {
     }
 
     @Override
-    public void attack(@NotNull Mob infernalMob, @NotNull Mob target) {
-    }
-
-    @Override
-    public void counterattack(@NotNull Mob infernalMob, @NotNull Mob target) {
-    }
-
-    @Override
-    public void showEffect(@NotNull Mob infernalMob) {
-    }
-
-    @Override
     public void onDamaged(@NotNull Mob infernalMob, double damageAmount) {
         if (5 < infernalMob.getHealth() - damageAmount) {
             return;
@@ -66,14 +54,6 @@ public class OneUpAbility extends AbstractAbility {
 
         world.spawnParticle(Particle.HEART, location.add(0.0, 0.5, 0.0), 20, 1.0, 1.0, 1.0);
         world.playSound(location, Sound.ENTITY_PLAYER_LEVELUP, SoundCategory.MASTER, 100, 2.0f);
-    }
-
-    @Override
-    public void onDamaged(@NotNull Mob infernalMob, @NotNull Mob damager, double damageAmount) {
-    }
-
-    @Override
-    public void onKilled(@NotNull Mob infernalMob, @NotNull Mob killer) {
     }
 
     private int getLives(@NotNull Mob infernalMob) {

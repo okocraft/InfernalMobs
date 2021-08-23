@@ -7,17 +7,24 @@ public interface Ability {
 
     @NotNull String getName();
 
-    void onSpawn(@NotNull Mob infernalMob);
+    default void onSpawn(@NotNull Mob infernalMob) {
+    }
 
-    void attack(@NotNull Mob infernalMob, @NotNull Mob target);
+    default void attack(@NotNull Mob infernalMob, @NotNull Mob target) {
+    }
 
-    void counterattack(@NotNull Mob infernalMob, @NotNull Mob target);
+    default void counterattack(@NotNull Mob infernalMob, @NotNull Mob target) {
+    }
 
-    void showEffect(@NotNull Mob infernalMob);
+    default void showEffect(@NotNull Mob infernalMob) {
+    }
 
-    void onDamaged(@NotNull Mob infernalMob, double damageAmount);
+    default void onDamaged(@NotNull Mob infernalMob, double damageAmount) {
+    }
 
-    void onDamaged(@NotNull Mob infernalMob, @NotNull Mob damager, double damageAmount);
+    default void onDamaged(@NotNull Mob infernalMob, @NotNull Mob damager, double damageAmount) {
+    }
 
-    void onKilled(@NotNull Mob infernalMob, @NotNull Mob killer);
+    default void onKilled(@NotNull Mob infernalMob, @NotNull Mob killer) {
+    }
 }
