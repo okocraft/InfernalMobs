@@ -64,7 +64,7 @@ public class OneUpAbility extends AbstractAbility {
         var world = infernalMob.getWorld();
         var location = infernalMob.getLocation();
 
-        world.spawnParticle(Particle.HEART, location, 10, 2.0, 2.0, 2.0);
+        world.spawnParticle(Particle.HEART, location.add(0.0, 0.5, 0.0), 20, 1.0, 1.0, 1.0);
         world.playSound(location, Sound.ENTITY_PLAYER_LEVELUP, SoundCategory.MASTER, 100, 2.0f);
     }
 
