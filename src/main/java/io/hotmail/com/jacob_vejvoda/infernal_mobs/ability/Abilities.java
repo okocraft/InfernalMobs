@@ -10,6 +10,7 @@ public final class Abilities {
     public static final Ability BULWARK = new BulwarkAbility();
     public static final Ability CONFUSE = new ConfuseAbility();
     public static final Ability QUICKSAND = new QuicksandAbility();
+    public static final Ability RUST = new RustAbility();
     public static final Ability WITHERING = new WitheringAbility();
 
     public static @Nullable Ability fromName(@NotNull String name) {
@@ -20,6 +21,7 @@ public final class Abilities {
             case "bulwark", "bullwark" -> BULWARK;
             case "confuse" -> CONFUSE;
             case "quicksand" -> QUICKSAND;
+            case "rust" -> RUST;
             case "withering" -> WITHERING;
             default -> null;
         };
