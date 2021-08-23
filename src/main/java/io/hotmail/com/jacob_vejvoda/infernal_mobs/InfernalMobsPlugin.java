@@ -93,7 +93,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     "armoured", new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, 1),
                     "sprint", new PotionEffect(PotionEffectType.SPEED, 40, 1),
                     "molten", new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 40, 1));
-    static final Random RANDOM = new Random();
+    public static final Random RANDOM = new Random();
 
     GUI gui;
     long serverTime = 0L;
