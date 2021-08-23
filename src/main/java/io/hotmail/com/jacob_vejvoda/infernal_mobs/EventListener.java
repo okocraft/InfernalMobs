@@ -165,7 +165,7 @@ public class EventListener implements Listener {
 
         if (infernal != null) {
             if (infernal.abilityList.contains("1up")) {
-                Abilities.ONE_UP.onDamaged((Mob) mob);
+                Abilities.ONE_UP.onDamaged((Mob) mob, e.getDamage());
             }
 
             for (Entity entity : mob.getNearbyEntities(64.0D, 64.0D, 64.0D)) {
