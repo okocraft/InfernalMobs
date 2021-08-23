@@ -2137,6 +2137,10 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             UUID id = ent.getUniqueId();
             InfernalMob newMob = new InfernalMob(ent, id, true, abList, 1, getEffect());
 
+            if (abList.contains("1up")) {
+                Abilities.ONE_UP.onSpawn((Mob) ent); // TODO: change LivingEntity to Mob
+            }
+
             if (abList.contains("flying")) {
                 makeFly(ent);
             }
