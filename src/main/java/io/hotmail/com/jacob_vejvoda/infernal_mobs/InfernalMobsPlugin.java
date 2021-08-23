@@ -1,7 +1,7 @@
 package io.hotmail.com.jacob_vejvoda.infernal_mobs;
 
 import io.hotmail.com.jacob_vejvoda.infernal_mobs.ability.Abilities;
-import io.hotmail.com.jacob_vejvoda.infernal_mobs.ability.OneUpAbility;
+import io.hotmail.com.jacob_vejvoda.infernal_mobs.util.NamespaceFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -107,6 +107,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     final List<Player> levitateList = new ArrayList<>();
 
     public void onEnable() {
+        NamespaceFactory.init(this);
+
         //Register Events
         getServer().getPluginManager().registerEvents(this, this);
         EventListener events = new EventListener(this);
