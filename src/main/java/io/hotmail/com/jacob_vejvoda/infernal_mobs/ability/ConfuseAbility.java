@@ -17,10 +17,6 @@ public class ConfuseAbility extends AbstractAbility {
     }
 
     @Override
-    public void onSpawn(@NotNull Mob infernalMob) {
-    }
-
-    @Override
     public void attack(@NotNull Mob infernalMob, @NotNull Mob target) {
         if (InfernalMobsPlugin.RANDOM.nextInt(20) == 0) {
             CONFUSION.apply(target);
@@ -40,24 +36,5 @@ public class ConfuseAbility extends AbstractAbility {
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_BURP, 100, 0.75f);
             }
         }
-    }
-
-    @Override
-    public void showEffect(@NotNull Mob infernalMob) {
-
-    }
-
-    @Override
-    public void onDamaged(@NotNull Mob infernalMob, double damageAmount) {
-
-    }
-
-    @Override
-    public void onDamaged(@NotNull Mob infernalMob, @NotNull Mob damager, double damageAmount) {
-    }
-
-    @Override
-    public void onKilled(@NotNull Mob infernalMob, @NotNull Mob killer) {
-
     }
 }
