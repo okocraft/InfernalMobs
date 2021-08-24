@@ -7,6 +7,10 @@ public interface Ability {
 
     @NotNull String getName();
 
+    default boolean isApplicable(@NotNull Mob mob) {
+        return true;
+    }
+
     default void onSpawn(@NotNull Mob infernalMob) {
     }
 
