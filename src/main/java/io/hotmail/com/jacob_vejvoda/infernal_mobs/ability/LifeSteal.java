@@ -1,6 +1,6 @@
 package io.hotmail.com.jacob_vejvoda.infernal_mobs.ability;
 
-import io.hotmail.com.jacob_vejvoda.infernal_mobs.InfernalMobsPlugin;
+import io.hotmail.com.jacob_vejvoda.infernal_mobs.util.RandomNumber;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
@@ -16,7 +16,7 @@ public class LifeSteal extends AbstractAbility {
 
     @Override
     public void attack(@NotNull Mob infernalMob, @NotNull Mob target) {
-        if (InfernalMobsPlugin.RANDOM.nextInt(10) == 0) {
+        if (RandomNumber.doLottery(10)) {
             target.damage(2.0, infernalMob);
 
             var current = infernalMob.getHealth();

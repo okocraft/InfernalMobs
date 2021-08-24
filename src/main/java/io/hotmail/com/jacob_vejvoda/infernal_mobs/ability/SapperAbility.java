@@ -1,6 +1,6 @@
 package io.hotmail.com.jacob_vejvoda.infernal_mobs.ability;
 
-import io.hotmail.com.jacob_vejvoda.infernal_mobs.InfernalMobsPlugin;
+import io.hotmail.com.jacob_vejvoda.infernal_mobs.util.RandomNumber;
 import org.bukkit.Sound;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -18,14 +18,14 @@ public class SapperAbility extends AbstractAbility {
 
     @Override
     public void attack(@NotNull Mob infernalMob, @NotNull Mob target) {
-        if (target instanceof Player player && InfernalMobsPlugin.RANDOM.nextInt(20) == 0) {
+        if (target instanceof Player player && RandomNumber.doLottery(20)) {
             applyEffect(player);
         }
     }
 
     @Override
     public void counterattack(@NotNull Mob infernalMob, @NotNull Mob target) {
-        if (target instanceof Player player && InfernalMobsPlugin.RANDOM.nextInt(20) == 0) {
+        if (target instanceof Player player && RandomNumber.doLottery(20)) {
             applyEffect(player);
         }
     }
