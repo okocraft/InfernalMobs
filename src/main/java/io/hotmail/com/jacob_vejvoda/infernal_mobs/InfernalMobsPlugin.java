@@ -278,7 +278,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 aList = getAbilitiesAmount(ent);
             }
         }
-        InfernalMob newMob = new InfernalMob(ent, id, true, aList, 1, getEffect());
+        InfernalMob newMob = new InfernalMob(ent, id, true, aList, getEffect());
 
         if (aList.contains("flying")) {
             makeFly(ent);
@@ -326,7 +326,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 }
             }
 
-            InfernalMob newMob = new InfernalMob(e, uuid, true, abilities, 1, getEffect());
+            InfernalMob newMob = new InfernalMob(e, uuid, true, abilities, getEffect());
 
             //fire event
             InfernalSpawnEvent infernalEvent = new InfernalSpawnEvent(e, newMob);
@@ -484,9 +484,9 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         }
         InfernalMob newMob;
         if (evil) {
-            newMob = new InfernalMob(g, g.getUniqueId(), false, aList, 1, "smoke:2:12");
+            newMob = new InfernalMob(g, g.getUniqueId(), false, aList, "smoke:2:12");
         } else {
-            newMob = new InfernalMob(g, g.getUniqueId(), false, aList, 1, "cloud:0:8");
+            newMob = new InfernalMob(g, g.getUniqueId(), false, aList, "cloud:0:8");
         }
 
         addNewInfernalMobToMap(newMob);
@@ -1476,8 +1476,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     }
                     List<String> abilities = infernalMobMap.get(id).abilityList;
 
-                    var newEnt = vic.getWorld().spawnEntity(l, type);
-                    var newMob = new InfernalMob(newEnt, newEnt.getUniqueId(), true, abilities, 2, getEffect());
+                    newEnt = vic.getWorld().spawnEntity(l, type);
+                    var newMob =new InfernalMob(newEnt, newEnt.getUniqueId(), true, abilities, getEffect());
 
                     if (abilities.contains("flying")) {
                         makeFly(newEnt);
@@ -2133,7 +2133,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
             Entity ent = l.getWorld().spawnEntity(l, type);
 
             UUID id = ent.getUniqueId();
-            InfernalMob newMob = new InfernalMob(ent, id, true, abList, 1, getEffect());
+            InfernalMob newMob = new InfernalMob(ent, id, true, abList, getEffect());
 
             if (abList.contains("1up")) {
                 Abilities.ONE_UP.onSpawn((Mob) ent); // TODO: change LivingEntity to Mob
@@ -2481,7 +2481,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
                     List<String> abList = getAbilitiesAmount(ent);
                     UUID id = ent.getUniqueId();
-                    InfernalMob newMob = new InfernalMob(ent, id, true, abList, 2, getEffect());
+                    InfernalMob newMob = new InfernalMob(ent, id, true, abList, getEffect());
 
                     if (abList.contains("flying")) {
                         makeFly(ent);
@@ -2519,7 +2519,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         }
 
                         UUID id = ent.getUniqueId();
-                        InfernalMob newMob = new InfernalMob(ent, id, true, spesificAbList, 1, getEffect());
+                        InfernalMob newMob = new InfernalMob(ent, id, true, spesificAbList, getEffect());
 
                         if (spesificAbList.contains("flying")) {
                             makeFly(ent);
