@@ -1,6 +1,5 @@
 package io.hotmail.com.jacob_vejvoda.infernal_mobs.ability;
 
-import io.hotmail.com.jacob_vejvoda.infernal_mobs.InfernalMobsPlugin;
 import io.hotmail.com.jacob_vejvoda.infernal_mobs.util.RandomNumber;
 import org.bukkit.Sound;
 import org.bukkit.entity.Mob;
