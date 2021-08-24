@@ -1,6 +1,7 @@
 package io.hotmail.com.jacob_vejvoda.infernal_mobs.ability;
 
 import io.hotmail.com.jacob_vejvoda.infernal_mobs.InfernalMobsPlugin;
+import io.hotmail.com.jacob_vejvoda.infernal_mobs.util.RandomNumber;
 import org.bukkit.Sound;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -18,7 +19,7 @@ public class ConfuseAbility extends AbstractAbility {
 
     @Override
     public void attack(@NotNull Mob infernalMob, @NotNull Mob target) {
-        if (InfernalMobsPlugin.RANDOM.nextInt(20) == 0) {
+        if (RandomNumber.doLottery(20)) {
             CONFUSION.apply(target);
 
             if (target instanceof Player player) {
@@ -29,7 +30,7 @@ public class ConfuseAbility extends AbstractAbility {
 
     @Override
     public void counterattack(@NotNull Mob infernalMob, @NotNull Mob target) {
-        if (InfernalMobsPlugin.RANDOM.nextInt(20) == 0) {
+        if (RandomNumber.doLottery(20)) {
             CONFUSION.apply(target);
 
             if (target instanceof Player player) {

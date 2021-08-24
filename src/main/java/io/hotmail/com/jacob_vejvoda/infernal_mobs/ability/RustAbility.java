@@ -1,6 +1,6 @@
 package io.hotmail.com.jacob_vejvoda.infernal_mobs.ability;
 
-import io.hotmail.com.jacob_vejvoda.infernal_mobs.InfernalMobsPlugin;
+import io.hotmail.com.jacob_vejvoda.infernal_mobs.util.RandomNumber;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Mob;
@@ -17,7 +17,7 @@ public class RustAbility extends AbstractAbility {
 
     @Override
     public void counterattack(@NotNull Mob infernalMob, @NotNull Mob target) {
-        if (target instanceof Player player && InfernalMobsPlugin.RANDOM.nextInt(5) == 0) {
+        if (target instanceof Player player && RandomNumber.doLottery(5)) {
             var mainHand = player.getInventory().getItemInMainHand();
 
             if (mainHand.getItemMeta() instanceof Damageable damageable) {
