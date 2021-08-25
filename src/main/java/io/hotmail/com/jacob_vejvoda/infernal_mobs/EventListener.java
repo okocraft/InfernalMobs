@@ -1,5 +1,6 @@
 package io.hotmail.com.jacob_vejvoda.infernal_mobs;
 
+import io.hotmail.com.jacob_vejvoda.infernal_mobs.ability.Abilities;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -12,6 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.TNTPrimed;
@@ -154,8 +156,18 @@ public class EventListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamaged(EntityDamageEvent e) {
         Entity mob = e.getEntity();
-        if (isEnabledWorld(mob.getWorld()) &&
-                plugin.infernalMobMap.containsKey(mob.getUniqueId())) {
+
+        if (!isEnabledWorld(mob.getWorld()) || !(mob instanceof Mob)) {
+            return;
+        }
+
+        var infernal = plugin.infernalMobMap.get(mob.getUniqueId());
+
+        if (infernal != null) {
+            if (infernal.abilityList.contains("1up")) {
+                Abilities.ONE_UP.onDamaged((Mob) mob, e.getDamage());
+            }
+
             for (Entity entity : mob.getNearbyEntities(64.0D, 64.0D, 64.0D)) {
                 if (entity instanceof Player) {
                     GUI.fixBar((Player) entity);

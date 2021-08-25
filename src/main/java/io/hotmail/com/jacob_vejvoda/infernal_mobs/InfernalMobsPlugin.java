@@ -1,5 +1,7 @@
 package io.hotmail.com.jacob_vejvoda.infernal_mobs;
 
+import io.hotmail.com.jacob_vejvoda.infernal_mobs.ability.Abilities;
+import io.hotmail.com.jacob_vejvoda.infernal_mobs.util.NamespaceFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -32,6 +34,7 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Sheep;
 import org.bukkit.entity.Skeleton;
@@ -90,7 +93,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     "armoured", new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, 1),
                     "sprint", new PotionEffect(PotionEffectType.SPEED, 40, 1),
                     "molten", new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 40, 1));
-    static final Random RANDOM = new Random();
+    public static final Random RANDOM = new Random();
 
     GUI gui;
     long serverTime = 0L;
@@ -104,6 +107,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
     final List<Player> levitateList = new ArrayList<>();
 
     public void onEnable() {
+        NamespaceFactory.init(this);
+
         //Register Events
         getServer().getPluginManager().registerEvents(this, this);
         EventListener events = new EventListener(this);
@@ -273,12 +278,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 aList = getAbilitiesAmount(ent);
             }
         }
-        InfernalMob newMob;
-        if (aList.contains("1up")) {
-            newMob = new InfernalMob(ent, id, true, aList, 2, getEffect());
-        } else {
-            newMob = new InfernalMob(ent, id, true, aList, 1, getEffect());
-        }
+        InfernalMob newMob = new InfernalMob(ent, id, true, aList, getEffect());
+
         if (aList.contains("flying")) {
             makeFly(ent);
         }
@@ -325,16 +326,17 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                 }
             }
 
-            InfernalMob newMob =
-                    abilities.contains("1up") ?
-                            new InfernalMob(e, uuid, true, abilities, 2, getEffect()) :
-                            new InfernalMob(e, uuid, true, abilities, 1, getEffect());
+            InfernalMob newMob = new InfernalMob(e, uuid, true, abilities, getEffect());
 
             //fire event
             InfernalSpawnEvent infernalEvent = new InfernalSpawnEvent(e, newMob);
             getServer().getPluginManager().callEvent(infernalEvent);
             if (infernalEvent.isCancelled()) {
                 return;
+            }
+
+            if (abilities.contains("1up")) {
+                Abilities.ONE_UP.onSpawn((Mob) e); // TODO: change LivingEntity to Mob
             }
 
             addNewInfernalMobToMap(newMob);
@@ -482,9 +484,9 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         }
         InfernalMob newMob;
         if (evil) {
-            newMob = new InfernalMob(g, g.getUniqueId(), false, aList, 1, "smoke:2:12");
+            newMob = new InfernalMob(g, g.getUniqueId(), false, aList, "smoke:2:12");
         } else {
-            newMob = new InfernalMob(g, g.getUniqueId(), false, aList, 1, "cloud:0:8");
+            newMob = new InfernalMob(g, g.getUniqueId(), false, aList, "cloud:0:8");
         }
 
         addNewInfernalMobToMap(newMob);
@@ -1092,15 +1094,6 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     case "molten":
                         Optional.ofNullable(EFFECT_MAP.get(ability)).ifPresent(mob::addPotionEffect);
                         break;
-                    case "1up":
-                        if (mob.getHealth() <= 5 && infernalMob.lives > 1) {
-                            var maxHealth = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
-                            if (maxHealth != null) {
-                                mob.setHealth(maxHealth.getValue());
-                                infernalMob.setLives(infernalMob.lives - 1);
-                            }
-                        }
-                        break;
                     case "tosser":
                         if (randomNum < 5) {
                             double radius = 6D;
@@ -1484,15 +1477,9 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                         getLogger().warning("Infernal Mobs can't find mob type: " + mobName + "!");
                         return;
                     }
-                    InfernalMob newMob;
-
                     List<String> abilities = infernalMobMap.get(id).abilityList;
 
-                    if (abilities.contains("1up")) {
-                        newMob = new InfernalMob(newEnt, newEnt.getUniqueId(), true, abilities, 2, getEffect());
-                    } else {
-                        newMob = new InfernalMob(newEnt, newEnt.getUniqueId(), true, abilities, 1, getEffect());
-                    }
+                    var newMob = new InfernalMob(newEnt, newEnt.getUniqueId(), true, abilities, getEffect());
 
                     if (abilities.contains("flying")) {
                         makeFly(newEnt);
@@ -2146,16 +2133,18 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
         var type = getEntityTypeFromName(mob);
         if (type != null) {
             Entity ent = l.getWorld().spawnEntity(l, type);
-            InfernalMob newMob;
+
             UUID id = ent.getUniqueId();
+            InfernalMob newMob = new InfernalMob(ent, id, true, abList, getEffect());
+
             if (abList.contains("1up")) {
-                newMob = new InfernalMob(ent, id, true, abList, 2, getEffect());
-            } else {
-                newMob = new InfernalMob(ent, id, true, abList, 1, getEffect());
+                Abilities.ONE_UP.onSpawn((Mob) ent); // TODO: change LivingEntity to Mob
             }
+
             if (abList.contains("flying")) {
                 makeFly(ent);
             }
+
             addNewInfernalMobToMap(newMob);
             gui.setName(ent);
 
@@ -2493,14 +2482,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     }
 
                     List<String> abList = getAbilitiesAmount(ent);
-                    InfernalMob newMob;
                     UUID id = ent.getUniqueId();
-
-                    if (abList.contains("1up")) {
-                        newMob = new InfernalMob(ent, id, true, abList, 2, getEffect());
-                    } else {
-                        newMob = new InfernalMob(ent, id, true, abList, 1, getEffect());
-                    }
+                    InfernalMob newMob = new InfernalMob(ent, id, true, abList, getEffect());
 
                     if (abList.contains("flying")) {
                         makeFly(ent);
@@ -2536,13 +2519,10 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                         }
-                        InfernalMob newMob;
+
                         UUID id = ent.getUniqueId();
-                        if (spesificAbList.contains("1up")) {
-                            newMob = new InfernalMob(ent, id, true, spesificAbList, 2, getEffect());
-                        } else {
-                            newMob = new InfernalMob(ent, id, true, spesificAbList, 1, getEffect());
-                        }
+                        InfernalMob newMob = new InfernalMob(ent, id, true, spesificAbList, getEffect());
+
                         if (spesificAbList.contains("flying")) {
                             makeFly(ent);
                         }
