@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 public final class Abilities {
 
     public static final Ability ONE_UP = new OneUpAbility();
+    public static final Ability ARMOURED = new ArmouredAbility();
     public static final Ability BLINDING = new BlindingAbility();
     public static final Ability BULWARK = new BulwarkAbility();
     public static final Ability CONFUSE = new ConfuseAbility();
@@ -18,6 +19,7 @@ public final class Abilities {
     public static @Nullable Ability fromName(@NotNull String name) {
         return switch (name) {
             case "1up" -> ONE_UP;
+            case "armoured" -> ARMOURED;
             case "blinding" -> BLINDING;
             // bullwark is probably a typo, but it is used in the configuration, so we'll keep it for compatibility...
             case "bulwark", "bullwark" -> BULWARK;
