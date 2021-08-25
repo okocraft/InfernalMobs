@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 public enum Abilities implements Ability {
     ARMOURED(new ArmouredAbility()),
+    BERSERK(new BerserkAbility()),
     BLINDING(new BlindingAbility()),
     BULWARK(new BulwarkAbility()),
     CONFUSE(new ConfuseAbility()),
@@ -21,6 +22,7 @@ public enum Abilities implements Ability {
         return switch (name) {
             case "1up" -> ONE_UP;
             case "armoured" -> ARMOURED;
+            case "berserk" -> BERSERK;
             case "blinding" -> BLINDING;
             // bullwark is probably a typo, but it is used in the configuration, so we'll keep it for compatibility...
             case "bulwark", "bullwark" -> BULWARK;
