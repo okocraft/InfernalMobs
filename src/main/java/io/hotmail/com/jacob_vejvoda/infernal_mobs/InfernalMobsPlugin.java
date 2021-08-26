@@ -1475,15 +1475,15 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                     int index = RANDOM.nextInt(mList.size());
                     String mobName = mList.get(index);
 
-                    newEnt =
-                            Optional.ofNullable(getEntityTypeFromName(mobName))
-                                    .filter(type -> type != EntityType.ENDER_DRAGON)
-                                    .map(type -> vic.getWorld().spawnEntity(l, type)).orElse(null);
+                    var type = getEntityTypeFromName(mobName);
 
-                    if (newEnt == null) {
-                        getLogger().warning("Infernal Mobs can't find mob type: " + mobName + "!");
+                    if (type == null || type == EntityType.ENDER_DRAGON) {
+                        getLogger().warning("Infernal Mobs can't use that mob type: " + mobName + "!");
                         return;
                     }
+
+                    newEnt = vic.getWorld().spawnEntity(l, type);
+
                     InfernalMob newMob;
 
                     List<String> abilities = infernalMobMap.get(id).abilityList;
@@ -1674,7 +1674,7 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
                                         Ageable minion = (Ageable) atc.getWorld().spawnEntity(atc.getLocation(), atc.getType());
                                         minion.setBaby();
                                     }
-                                } else {
+                                } else if (atc.getType() != EntityType.ENDER_DRAGON) {
                                     for (int i = 0; i < amount; i++) {
                                         atc.getWorld().spawnEntity(atc.getLocation(), atc.getType());
                                     }
