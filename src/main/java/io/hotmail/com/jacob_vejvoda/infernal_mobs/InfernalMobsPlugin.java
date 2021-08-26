@@ -1477,8 +1477,8 @@ public class InfernalMobsPlugin extends JavaPlugin implements Listener {
 
                     newEnt =
                             Optional.ofNullable(getEntityTypeFromName(mobName))
-                                    .map(type -> vic.getWorld().spawnEntity(l, type))
-                                    .orElse(null);
+                                    .filter(type -> type != EntityType.ENDER_DRAGON)
+                                    .map(type -> vic.getWorld().spawnEntity(l, type)).orElse(null);
 
                     if (newEnt == null) {
                         getLogger().warning("Infernal Mobs can't find mob type: " + mobName + "!");
