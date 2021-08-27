@@ -292,13 +292,14 @@ public class EventListener implements Listener {
                     plugin.getConfig().getStringList("enabledSpawnReasons").contains(CreatureSpawnEvent.SpawnReason.SPAWNER.toString())) {
                 plugin.makeInfernal(event.getEntity(), false);
             }
+
+            return;
         }
 
         long start = this.spawnerMap.computeIfAbsent(name, str -> plugin.serverTime);
         long passed = plugin.serverTime - start;
 
         if (delay <= passed) {
-            plugin.makeInfernal(event.getEntity(), true);
             this.spawnerMap.put(name, plugin.serverTime);
         } else {
             event.setCancelled(true);
