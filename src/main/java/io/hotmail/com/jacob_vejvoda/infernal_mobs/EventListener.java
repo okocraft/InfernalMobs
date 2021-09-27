@@ -397,7 +397,7 @@ public class EventListener implements Listener {
                     var drop = plugin.getRandomLoot(player, entityName, abilities.size());
 
                     if (drop != null) {
-                        event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), drop);
+                        event.getDrops().add(drop);
                     }
                 }
 
